@@ -2,7 +2,7 @@ import { SEED_MEMBERS, SEED_MEDICATIONS, SEED_VITALS, SEED_LAB_REPORTS, SEED_APP
 
 let _db: IDBDatabase | null = null;
 
-export const DB_NAME = 'FamilyHealthV6';
+export const DB_NAME = 'SwasthSathiClinicalV1';
 export const DB_VERSION = 1;
 
 export const STORES = [

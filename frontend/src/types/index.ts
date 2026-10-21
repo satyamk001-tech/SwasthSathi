@@ -8,6 +8,9 @@ export interface Member {
   blood?: string;
   phone?: string;
   conditions?: string[];
+  allergies?: string[];
+  photoUrl?: string;
+  triageNotes?: string;
   _ts?: number;
 }
 

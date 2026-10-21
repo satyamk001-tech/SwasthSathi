@@ -35,3 +35,6 @@ yarn-error.log*
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Temporary extracted media
+extracted_media/
