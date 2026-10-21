@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "SwasthSathi - AI-Powered Family Health Assistant & Diagnostic Triage",
   "scripts": {
-    "dev": "npm run dev --prefix frontend",
+    "dev": "concurrently -k -n \"BACKEND,FRONTEND\" -c \"magenta,cyan\" \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:frontend": "npm run dev --prefix frontend",
     "dev:backend": "npm run dev --prefix backend",
     "build": "npm run build --prefix frontend && npm run build --prefix backend",
@@ -23,5 +23,8 @@
     "mediscan"
   ],
   "author": "satyamk001-tech",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
 }

@@ -11,8 +11,17 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    strictPort: true,
+    strictPort: false,
     host: true,
-    allowedHosts: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      },
+      '/swasthsathi': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      }
+    }
   }
 });

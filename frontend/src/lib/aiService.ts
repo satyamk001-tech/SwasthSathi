@@ -12,13 +12,14 @@ import {
 } from '../types';
 import { uid, today } from './utils';
 
-const BACKEND_URL = (import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:5000';
+const BACKEND_URL = (import.meta as any).env?.VITE_BACKEND_URL || '';
 
-async function fetchWithTimeout(resource: string, options: RequestInit = {}, timeoutMs = 12000): Promise<Response> {
+async function fetchWithTimeout(resource: string, options: RequestInit = {}, timeoutMs = 3000): Promise<Response> {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(resource, {
+    const url = resource.startsWith('http') ? resource : `${BACKEND_URL}${resource}`;
+    const response = await fetch(url, {
       ...options,
       signal: controller.signal
     });
