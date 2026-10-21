@@ -2,10 +2,6 @@
 
 <div align="center">
 
-<img src="docs/screenshots/dashboard.png" alt="SwasthSathi Family Health Dashboard" width="420" style="border-radius: 14px; box-shadow: 0 6px 20px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.08);" />
-
-<br/><br/>
-
 **An intelligent, offline-first clinical family health management operating system and emergency triage platform tailored for Indian households.**  
 Engineered with **React 18**, **TypeScript**, **Vite**, **Tailwind CSS**, and **IndexedDB**, powered by **Plus Jakarta Sans**, **Material Symbols**, and **Google Stitch Modernized Clinical Design**.
 
