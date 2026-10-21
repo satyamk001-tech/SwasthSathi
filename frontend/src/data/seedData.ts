@@ -26,59 +26,55 @@ export const today = () => new Date().toISOString().slice(0, 10);
 export const SEED_MEMBERS: Member[] = [
   {
     id: 'm1',
-    name: 'Arthur Jenkins',
-    age: 72,
+    name: 'Rajesh Kumar (Dad)',
+    age: 68,
     role: 'Father',
-    avatar: 'A',
+    avatar: 'R',
     color: '#ba0035',
     blood: 'O+',
-    phone: '+1 (555) 234-5678',
+    phone: '+91 98765 43210',
     conditions: ['Type 2 Diabetes', 'Hypertension', 'Cardiac Stent (LAD)'],
     allergies: ['Sulfa Antibiotics (Severe)', 'Latex'],
-    photoUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDfy--dLW2pGiqDiO2mZhKLzU9bfhScskFY8GRsEpMzP0BLB5sUAdwh9xMgbHr6A1fx2u6ZkPHq21CNwUdfuP8atol6TDOyIdE5DzzGWPyMfigr90yBmrom5buripsp0SFWX9B0qVuDA3lWd9zYm2s26nxJ1jsXyCEvETxQKt2k5XVEtw9ahuCi4LFktgSHhRb0I7_OO4lkya5h1JQ4tTButOM4KE_j4OQkTxvn_gmV5wngpl9hd0f0',
-    triageNotes: 'Drug-eluting cardiac stent 2021. Primary proxy: Sarah Jenkins.'
+    triageNotes: 'Drug-eluting cardiac stent (LAD Artery - 2021). Primary proxy: Harikit Kumar.'
   },
   {
     id: 'm2',
-    name: 'Maya Jenkins',
+    name: 'Ananya Kumar',
     age: 8,
     role: 'Daughter',
-    avatar: 'M',
+    avatar: 'A',
     color: '#006a61',
     blood: 'A+',
-    phone: '+1 (555) 234-5679',
+    phone: '+91 98765 43211',
     conditions: ['Mild Low Iron', 'Pediatric Wellness'],
     allergies: ['Penicillin (Moderate Hives)'],
-    photoUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAIuQ39CQ07qE_jDQnTlW3Mo4Ik-MpS6YsL8j_E2MQ-6mgJ_vuCJx07CVcLJZ8Wb1vWBtzY2LdWjIQbzlQi-sEgRvI6-WM21A_tvW-k0H4jSz-d1XSoJdo8Xniz9bHDIFoi4MHdMM0noBF7n1N9gKSgrBZdz9-3x4NJoqESEWo3kz-vLoAWa3gC0Y_AIRb7mnHh1sevJ6S7tTdEBP18O8tflo4aCvGIaNY4Swubqso56HeENO5Bm7XJ',
-    triageNotes: 'Pediatric Medical Record #FC-89420. Avoid beta-lactam antibiotics.'
+    triageNotes: 'Pediatric Health Record #SS-89420. Avoid beta-lactam antibiotics.'
   },
   {
     id: 'm3',
-    name: 'David Jenkins',
-    age: 38,
+    name: 'Priya Kumar',
+    age: 36,
     role: 'Spouse',
-    avatar: 'D',
+    avatar: 'P',
     color: '#006194',
     blood: 'O+',
-    phone: '+1 (555) 234-5680',
+    phone: '+91 98765 43212',
     conditions: ['Hypertension (Controlled)'],
     allergies: ['None Reported'],
-    photoUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCNYLAbrtBKMlLeJQeJoTMVgBYbgee3R9kqqLuvUO0hgKRWxEwrBO2oLzovqnnfYzBvcuFdvpFkVopUw3XtpbeGsUxjXznhj-lis1TtRWYZidu7Xs6CfpHqI_HoCRBwIbioJ2fT_MQ2LBwEHdnzRg7IyNzp9w2BAeVjdgDnKgwoD9jPWwxrdtZGQHsggr27szalKLJCreYF6SUgEyzTmY0DQ8CIqaJXzwLiBtv-w0vFFvuP_SkFKuE4',
-    triageNotes: '100% adherence streak. Emergency proxy signer.'
+    triageNotes: '100% adherence streak. Emergency family proxy.'
   },
   {
     id: 'm4',
-    name: 'Sarah Jenkins',
+    name: 'Harikit Kumar',
     age: 35,
-    role: 'Self (Mother)',
-    avatar: 'S',
+    role: 'Self (Caregiver)',
+    avatar: 'H',
     color: '#007bb9',
     blood: 'A+',
-    phone: '+1 (555) 234-5681',
+    phone: '+91 98765 43213',
     conditions: ['General Wellness', 'Family Caregiver'],
     allergies: ['No Known Drug Allergies (NKDA)'],
-    photoUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAIzTV1iUMFC455-WQ2wvKCae_g8EvTrh8M0TfVlDonTu8ufPMeX593v3X1nEmgXou1lf74diUQQebz3U9vU6jdtjrl1RFOudqPJh47D5YcX9N8FX8nUUiPuTrn9p0imdYmOUKez3B5w-xHXPgpKkcHdhpZZqMagmDwLqWYkA4cM-ZfsSIlg9VTwdgJhwDIO0lqFLCDj2Rhz18TnEIgDpo2XmRpMEGIA4QyuGFUQcyAl-aSnF1eHNtX',
-    triageNotes: 'Primary family guardian and account administrator.'
+    triageNotes: 'Primary family guardian and SwasthSathi account administrator.'
   }
 ];
 
@@ -131,7 +127,7 @@ export const SEED_MEDICATIONS: Medication[] = [
     time: '13:00',
     freq: 'Daily',
     taken: false,
-    notes: 'Take with citrus juice for absorption'
+    notes: 'Take with lemon water or orange juice for absorption'
   },
   {
     id: 'md6',
@@ -156,8 +152,8 @@ export const SEED_MEDICATIONS: Medication[] = [
   {
     id: 'md8',
     memberId: 'm4',
-    name: 'Multivitamin + Omega 3',
-    dose: '1 Softgel',
+    name: 'Multivitamin Daily',
+    dose: '1 Capsule',
     time: '08:00',
     freq: 'Daily',
     taken: true,
@@ -209,7 +205,7 @@ export const SEED_VITALS: Vital[] = [
     value: '72',
     unit: 'bpm',
     date: today(),
-    notes: 'Resting'
+    notes: 'Resting pulse'
   }
 ];
 
@@ -219,8 +215,8 @@ export const SEED_LAB_REPORTS: LabReport[] = [
     memberId: 'm2',
     reportName: 'Pediatric CBC & Iron Panel',
     date: today(),
-    labName: 'Quest Diagnostics Regional Lab (East)',
-    doctorName: 'Dr. Emily Vance, MD',
+    labName: 'Dr. Lal PathLabs National Reference Lab, New Delhi',
+    doctorName: 'Dr. Neha Sharma, MD (Pediatrics)',
     parameters: [
       {
         name: 'Hemoglobin',
@@ -265,7 +261,7 @@ export const SEED_LAB_REPORTS: LabReport[] = [
         normalRange: '50–120',
         status: 'Low',
         explanation: 'Circulating iron levels in bloodstream',
-        suggestion: 'Pair with Vitamin C for increased absorption'
+        suggestion: 'Pair with Vitamin C (lemon/amla) for increased absorption'
       },
       {
         name: 'Ferritin',
@@ -283,8 +279,8 @@ export const SEED_LAB_REPORTS: LabReport[] = [
     memberId: 'm1',
     reportName: 'Comprehensive Metabolic & Lipid Panel',
     date: '2024-01-15',
-    labName: 'Northwest Memorial Diagnostic Lab',
-    doctorName: 'Dr. Aris Thorne',
+    labName: 'Apollo Diagnostics Centre',
+    doctorName: 'Dr. Rahul Sharma, MD (Cardiology)',
     parameters: [
       {
         name: 'Blood Sugar (Fasting)',
@@ -293,7 +289,7 @@ export const SEED_LAB_REPORTS: LabReport[] = [
         normalRange: '70–99',
         status: 'High',
         explanation: 'Fasting venous glucose measurement',
-        suggestion: 'Elevated — continue Metformin and dietary monitoring'
+        suggestion: 'Elevated — continue Metformin and strict low-glycemic diet'
       },
       {
         name: 'HbA1c',
@@ -330,31 +326,31 @@ export const SEED_APPOINTMENTS: Appointment[] = [
   {
     id: 'ap1',
     memberId: 'm2',
-    doctor: 'Dr. Emily Vance, MD',
+    doctor: 'Dr. Neha Sharma, MD',
     specialty: 'Pediatrics',
     date: new Date(Date.now() + 864e5).toISOString().slice(0, 10),
     time: '10:30',
-    notes: 'Pediatric Follow-up & Iron Panel review at Northside Pediatric Clinic • Suite 302',
+    notes: "Pediatric Follow-up & Iron Panel review at Apollo Children's Clinic • Saket, New Delhi",
     status: 'upcoming'
   },
   {
     id: 'ap2',
     memberId: 'm3',
-    doctor: 'Dr. Aris Thorne',
+    doctor: 'Dr. Rahul Sharma, MD',
     specialty: 'Cardiology',
     date: new Date(Date.now() + 864e5).toISOString().slice(0, 10),
     time: '10:30',
-    notes: 'Cardiology Follow-up • Northwest Heart Pavilion',
+    notes: 'Cardiology Follow-up • Fortis Escorts Heart Institute',
     status: 'upcoming'
   },
   {
     id: 'ap3',
     memberId: 'm1',
-    doctor: 'Dr. Rahul Sharma',
+    doctor: 'Dr. Rajesh Gupta, MD',
     specialty: 'Endocrinology',
     date: new Date(Date.now() + 5 * 864e5).toISOString().slice(0, 10),
     time: '14:00',
-    notes: 'Quarterly diabetes & HbA1c review',
+    notes: 'Quarterly diabetes & HbA1c review at AIIMS New Delhi',
     status: 'upcoming'
   }
 ];

@@ -65,7 +65,7 @@ export const SafeguardsPage: React.FC = () => {
             <div className="relative">
               <img
                 className="w-14 h-14 rounded-full object-cover shadow-sm ring-2 ring-surface-container"
-                alt="Sarah Jenkins"
+                alt="Harikit Kumar"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIzTV1iUMFC455-WQ2wvKCae_g8EvTrh8M0TfVlDonTu8ufPMeX593v3X1nEmgXou1lf74diUQQebz3U9vU6jdtjrl1RFOudqPJh47D5YcX9N8FX8nUUiPuTrn9p0imdYmOUKez3B5w-xHXPgpKkcHdhpZZqMagmDwLqWYkA4cM-ZfsSIlg9VTwdgJhwDIO0lqFLCDj2Rhz18TnEIgDpo2XmRpMEGIA4QyuGFUQcyAl-aSnF1eHNtX"
               />
               <span className="absolute bottom-0 right-0 w-4 h-4 bg-secondary rounded-full flex items-center justify-center shadow-sm">
@@ -77,21 +77,21 @@ export const SafeguardsPage: React.FC = () => {
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <h2 className="font-headline-sm text-base font-bold text-on-surface tracking-tight">
-                  Sarah Jenkins
+                  Harikit Kumar
                 </h2>
                 <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full font-label-sm text-[11px] font-bold">
                   Admin
                 </span>
               </div>
               <p className="font-body-sm text-xs text-on-surface-variant truncate">
-                sarah.jenkins@familycare.io
+                harikit@swasthsathi.in
               </p>
               <div className="flex items-center gap-2 mt-1">
                 <span className="font-label-sm text-[11px] text-secondary font-semibold flex items-center gap-1">
                   <span className="material-symbols-outlined text-[13px]">diversity_3</span> 3 Managed Profiles
                 </span>
                 <span className="text-outline-variant font-label-sm text-[10px]">•</span>
-                <span className="font-label-sm text-[11px] text-on-surface-variant">Arthur, Maya, David</span>
+                <span className="font-label-sm text-[11px] text-on-surface-variant">Rajesh, Ananya, Priya</span>
               </div>
             </div>
           </div>
@@ -283,7 +283,7 @@ export const SafeguardsPage: React.FC = () => {
             </div>
             <p className="font-body-sm text-xs text-on-surface leading-snug">
               Clinical safety safeguard enabled. Archived agenda items remain accessible to{' '}
-              <strong className="font-semibold text-primary">Dr. Emily Vance</strong> and your primary care team during post-visit reviews.
+              <strong className="font-semibold text-primary">Dr. Neha Sharma, MD</strong> and your primary care team during post-visit reviews.
             </p>
           </div>
         </div>
@@ -346,7 +346,7 @@ export const SafeguardsPage: React.FC = () => {
                   Medication Routine Reminders
                 </span>
                 <p className="font-body-sm text-xs text-on-surface-variant">
-                  Daily schedules for Arthur's Metformin &amp; Maya's supplements
+                  Daily schedules for Rajesh's Metformin &amp; Ananya's supplements
                 </p>
               </div>
             </div>
@@ -414,13 +414,13 @@ export const SafeguardsPage: React.FC = () => {
             <div className="flex items-center gap-3 min-w-0">
               <img
                 className="w-10 h-10 rounded-full object-cover shrink-0 shadow-sm"
-                alt="David"
+                alt="Priya"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNYLAbrtBKMlLeJQeJoTMVgBYbgee3R9kqqLuvUO0hgKRWxEwrBO2oLzovqnnfYzBvcuFdvpFkVopUw3XtpbeGsUxjXznhj-lis1TtRWYZidu7Xs6CfpHqI_HoCRBwIbioJ2fT_MQ2LBwEHdnzRg7IyNzp9w2BAeVjdgDnKgwoD9jPWwxrdtZGQHsggr27szalKLJCreYF6SUgEyzTmY0DQ8CIqaJXzwLiBtv-w0vFFvuP_SkFKuE4"
               />
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="font-label-lg text-xs text-on-surface font-bold truncate">
-                    David Jenkins
+                    Priya Kumar
                   </span>
                   <span className="font-label-sm text-[11px] text-on-surface-variant">(Spouse)</span>
                 </div>
@@ -436,12 +436,12 @@ export const SafeguardsPage: React.FC = () => {
           <div className="flex items-center justify-between p-2.5 rounded-xl hover:bg-surface-container-low transition-colors">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center font-bold text-sm shrink-0">
-                EV
+                NS
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="font-label-lg text-xs text-on-surface font-bold truncate">
-                    Dr. Emily Vance, MD
+                    Dr. Neha Sharma, MD
                   </span>
                   <span className="bg-secondary/10 text-secondary px-1.5 rounded font-label-sm text-[10px] font-bold">
                     Pediatrics

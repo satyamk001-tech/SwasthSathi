@@ -78,7 +78,7 @@ export const FamilyPage: React.FC = () => {
         <div>
           <h2 className="font-headline-sm text-lg font-bold text-on-surface">Family Directory</h2>
           <p className="font-body-sm text-xs text-on-surface-variant">
-            {members.length} registered profiles • Managed under Sarah Jenkins
+            {members.length} registered profiles • Managed under Harikit Kumar
           </p>
         </div>
         <button

@@ -96,10 +96,10 @@ export const RiskAcknowledgmentModal: React.FC<RiskAcknowledgmentModalProps> = (
               <span>Potential Data Loss Advisory</span>
             </div>
             <p className="font-body-sm text-xs text-amber-950 leading-relaxed">
-              Disabling auto-archive will permanently delete any dismissed doctor inquiries, medication alerts, or lab-flagged markers. Dr. Vance will not be able to cross-reference past questions.
+              Disabling auto-archive will permanently delete any dismissed doctor inquiries, medication alerts, or lab-flagged markers. Dr. Neha Sharma, MD will not be able to cross-reference past questions.
             </p>
             <ul className="text-[11.5px] text-amber-900 space-y-1 pl-4 list-disc font-medium">
-              <li>Maya's pediatric iron deficiency history will lose clinical context.</li>
+              <li>Ananya's pediatric iron deficiency history will lose clinical context.</li>
               <li>Dismissed items cannot be recovered from the archive.</li>
               <li>Compliance records will not retain doctor verification notes.</li>
             </ul>

@@ -1,165 +1,138 @@
-# 🩺 SwasthSathi - Modern Family Health & Clinical Care Platform
+# 🩺 SwasthSathi (स्वस्थ साथी) — Family Health & Clinical Care Platform
 
 <div align="center">
 
-![Platform Banner](docs/screenshots/dashboard.png)
+<img src="docs/screenshots/dashboard.png" alt="SwasthSathi Family Health Dashboard" width="800" style="border-radius: 18px; box-shadow: 0 12px 40px rgba(0,0,0,0.12);" />
 
-**An intelligent, offline-first clinical family health management platform and diagnostic triage system.**  
-Engineered with **React 19**, **TypeScript**, **Vite**, **Tailwind CSS**, and **IndexedDB**, powered by **Plus Jakarta Sans**, **Material Symbols**, and **Google Stitch Modernized Clinical Design**.
+<br/><br/>
 
-[![React](https://img.shields.io/badge/React-19.2-blue?logo=react)](https://react.dev/)
+**An intelligent, offline-first clinical family health management operating system and emergency triage platform tailored for Indian households.**  
+Engineered with **React 18**, **TypeScript**, **Vite**, **Tailwind CSS**, and **IndexedDB**, powered by **Plus Jakarta Sans**, **Material Symbols**, and **Google Stitch Modernized Clinical Design**.
+
+[![React](https://img.shields.io/badge/React-18.3-blue?logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-7.3-646CFF?logo=vite)](https://vitejs.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.3-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![IndexedDB](https://img.shields.io/badge/Storage-IndexedDB_Offline_First-orange)](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
+[![ABDM Aligned](https://img.shields.io/badge/Standards-ABDM%20%2F%20DISHA%20Ready-emerald)](https://abdm.gov.in/)
 
 </div>
 
 ---
 
-## 📸 Platform Visual Showcase & Modules
+## 🌟 Executive Overview & Mission
+
+In Indian joint and nuclear families, healthcare management is almost always multi-generational: adult children actively coordinate elderly parents' chronic diabetic and cardiac regimens while nurturing young children's nutritional and developmental milestones. 
+
+**SwasthSathi (स्वस्थ साथी)** serves as a **unified family health command center** that bridges daily prescription adherence, laboratory diagnostic intelligence, pre-visit physician preparation, and stress-resilient emergency triage into a single, cohesive, offline-capable progressive web application.
+
+### Why SwasthSathi?
+
+- **100% Offline-First Architecture**: Powered by client-side IndexedDB (`SwasthSathiIndianV2`), ensuring all medical records, emergency contacts, allergy profiles, and prescription schedules remain accessible during remote travel or cellular network dropouts.
+- **Dedicated Indian Context & Pharmacology**: Pre-configured with authentic Indian family profiles, localized medication brandings (e.g., Metformin, Amlodipine, Glipizide, Atorvastatin), leading diagnostic laboratory templates (Dr. Lal PathLabs, Apollo Diagnostics, SRL Diagnostics), and emergency dispatch protocols (`112` National Emergency & `108` Ambulance).
+- **Clinical Safety & Zero Data Loss Safeguards**: Critical biomarkers, severe allergy contraindications, and clinical inquiry agendas are protected by multi-step safety acknowledgment modals with auto-cancel timers.
+- **Multi-Generational Triage**: Seamlessly switch between parents, children, and spouses with instant updates across dosages, clinical flags, and appointments.
+
+---
+
+## 👨‍👩‍👧‍👦 Profile Model: The Kumar Family
+
+SwasthSathi comes pre-seeded with a clinical profile model reflecting multi-generational Indian household dynamics:
+
+| Member | Age & Role | Clinical Summary & Chronic Profile | Primary Caregiver / Attending Physician |
+| :--- | :--- | :--- | :--- |
+| **Harikit Kumar** | **38 yrs**<br/>Self • Family Caregiver • Admin | Healthy baseline; coordinates family appointments, medication logistics, and emergency dispatch proxies (`harikit@swasthsathi.in`). | Primary Family Administrator |
+| **Rajesh Kumar (Dad)** | **68 yrs**<br/>Father • Patriarch | **Type 2 Diabetes Mellitus**, **Hypertension**, post-PCI status with **Drug-Eluting Cardiac Stent (LAD Artery - 2021)**. Severe allergy: Sulfa Antibiotics & Latex. | **Dr. Rahul Sharma, MD**<br/>(Fortis Escorts Heart Institute) |
+| **Priya Kumar** | **36 yrs**<br/>Spouse • Co-Administrator | **Essential Hypertension** (managed with Amlodipine 5mg); full health proxy signer and 100% daily adherence tracker. | **Dr. Rajesh Gupta, MD**<br/>(AIIMS New Delhi) |
+| **Ananya Kumar** | **8 yrs**<br/>Daughter • Pediatric Profile | **Mild Low Iron / Microcytic Anemia trend** (Hgb 11.5 g/dL); seasonal wellness, active Delhi Public School (DPS) health record. Moderate allergy: Penicillin. | **Dr. Neha Sharma, MD**<br/>(Apollo Children's Clinic, Saket) |
+
+---
+
+## 🚀 Core Functional Modules
 
 ### 1. Family Health Dashboard & Daily Compliance
-*Real-time family adherence ring, clinical attention triage cards, member context switcher pills, and multi-segment routine compliance.*
-
-<div align="center">
-  <img src="docs/screenshots/dashboard.png" alt="Family Health Dashboard" width="720" style="border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);" />
-</div>
-
-- **Dynamic Clinical Greeting**: Contextual time-of-day greeting with active family profile stack and member switcher pills (`All Family`, `Arthur`, `Maya`, `David`, `Sarah`).
+- **Dynamic Time-of-Day Clinical Greeting**: Welcomes the primary caregiver (**Harikit Kumar**) with active family status indicators.
 - **Attention Required Priority Feed**:
-  - **Overdue Medication Alert**: Shows due dose (*Arthur's Metformin 500mg*) with interactive `Log Taken` (with smooth sync animation) and `Snooze 15m` transitions.
-  - **Flagged Clinical Lab Alert**: Highlights abnormal biomarkers (*Maya's Hemoglobin 11.5 g/dL Mild Low*) with pediatrician guidance and direct report links.
-  - **Upcoming Appointment Spotlight**: Follow-up details for upcoming cardiology consultations.
-- **Daily Regimen Dial**: SVG Circular progress gauge (60% compliance) paired with a 5-segment bar and schedule windows (Morning, Mid-day, Evening).
-- **Family Profile Telemetry**: Instant blood pressure readouts, blood group callouts, active condition tags, and allergy warnings.
+  - **Overdue Medication Alert**: Live alert for **Rajesh's Metformin 500mg (Post-Breakfast)** with interactive `Log Taken` (with audio-tactile feedback) and `Snooze 15m` controls.
+  - **Flagged Clinical Lab Alert**: Highlights **Ananya's Hemoglobin (11.5 g/dL - Mild Low)** with pediatric nutritional recommendations and direct links to Dr. Lal PathLabs reports.
+  - **Upcoming Appointment Spotlight**: Follow-up details for upcoming cardiology consultations with **Dr. Rahul Sharma**.
+- **Daily Regimen Dial**: SVG Circular progress gauge visualizing family-wide compliance alongside morning, mid-day, and evening schedule blocks.
+- **Family Profile Telemetry**: Instant blood pressure readouts, blood group callouts, active condition tags, and allergy warnings for every family member.
 
----
-
-### 2. Routine Dose Tracking & 7-Day Adherence Strip
-*Chronological routine timeline, 7-day micro calendar strip with adherence streaks, and multi-drug interaction screening.*
-
-<div align="center">
-  <img src="docs/screenshots/medications.png" alt="Routine Dose Tracking" width="720" style="border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);" />
-</div>
-
+### 2. Routine Dose Tracking & 7-Day Adherence Strip (MediScan)
 - **7-Day Micro Calendar Strip**: Real-time adherence indicators for each day of the week, featuring an active 14-day streak flame badge and daily completion percentages.
 - **Dose Event Bento Gauge**: Radial progress gauge visualizing daily doses taken (e.g., *4 of 7 Doses Taken*).
 - **Chronological Regimen Timeline**:
   - **Morning Window (8:00 AM)**: Completed doses (*Amlodipine 5mg*, *Glipizide 5mg*) with timestamp audit trail.
   - **Mid-Day Window (1:00 PM)**: Scheduled pediatric doses (*Vitamin D3 Drops*, *Elemental Iron Drops*) with one-tap `Log Dose` and `Snooze` controls.
   - **Evening Window (8:30 PM)**: Scheduled maintenance therapy (*Lisinopril 10mg*, *Atorvastatin 10mg*).
-- **Rx Check & Drug Interaction Matrix**: Local offline pharmacology database screening contraindications (e.g., Warfarin + Ibuprofen) plus deep AI mechanism analysis.
+- **Rx Check & Drug Interaction Matrix**: Local offline pharmacology database screening contraindications (e.g., Warfarin + Ibuprofen, Metformin + Contrast Dye) plus AI clinical mechanism analysis.
 
----
-
-### 3. Lab Report Scanner & Clinical Extraction
-*Document preview card with 98.4% OCR confidence badge, patient switcher, and extracted biomarker cards with out-of-range indicators.*
-
-<div align="center">
-  <img src="docs/screenshots/lab_scanner.png" alt="Lab Scanner & Clinical Extraction" width="720" style="border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);" />
-</div>
-
-- **Patient Profile Switcher**: Instantly switch context across family members with medical record number (#FC-89420).
-- **Clinical Verification Alert Banner**: Guarded review banner emphasizing AI-assisted transcription verification prior to official medical chart persistence.
-- **Uploaded Document Card**: Quest Diagnostics PDF/Image preview with file metadata (1.8 MB, Pediatric Template v4.2) and **98.4% OCR confidence score**.
+### 3. Lab Report Scanner & Clinical Biomarker Extraction
+- **Diagnostic Template Support**: Pre-configured for **Dr. Lal PathLabs**, **Apollo Diagnostics**, and **SRL Diagnostics** Complete Blood Count (CBC), Lipid Panel, and Metabolic profiles.
+- **High-Accuracy Extraction Preview**: Document preview card featuring an **OCR confidence badge (98.4%)** and patient record identifier (`#SS-89420`).
 - **Biomarker Extraction Grid**:
   - **Hemoglobin**: `11.5 g/dL` (Ref: 12.0–15.5) — `Mild Low` indicator with dietary iron guidance.
   - **Hematocrit**: `34.2%` (Ref: 35.0–45.0) — `Mild Low` correlation.
   - **WBC & Platelets**: `6,800 /µL` & `245,000 /µL` — `Normal` indicators.
   - **Serum Iron & Ferritin**: `48 µg/dL` & `16 ng/mL` — `Low` indicators.
-- **One-Tap Verification & Print**: Export and save approved reports into the permanent patient health record.
-
----
+- **One-Tap Verification & Print**: Export and save approved reports into the permanent patient health record or print an official clinical summary.
 
 ### 4. Emergency Medical SOS & Live Hospital Triage
-*Stress-resilient emergency dialer, rapid triage patient select, broadcast proxy alerts, and Level-1 trauma ER status.*
-
-<div align="center">
-  <img src="docs/screenshots/emergency_sos.png" alt="Emergency Medical SOS" width="720" style="border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);" />
-</div>
-
-- **Rapid Triage Patient Selector**: Horizontal selector with blood group callouts (*Arthur Jenkins • 72 yrs • BLOOD O+*).
-- **High-Contrast Emergency Dial**: Direct cellular emergency dispatch link (`tel:911` / `tel:112`) styled for high stress resilience.
+- **High-Stress Contrast Dialer**: Instant direct cellular call trigger to **112 National Emergency** (`tel:112`) and **108 Ambulance Services**.
+- **Rapid Triage Patient Selector**: Horizontal selector with blood group callouts (*Rajesh Kumar • 68 yrs • BLOOD O+*).
 - **Sub-Emergency Triggers**:
-  - **Broadcast SOS**: Triggers instant emergency SMS dispatch to verified family proxies.
-  - **Share GPS Fix**: Shares live GPS coordinates (*41.8781° N, 87.6298° W*).
-- **First-Responder ER Brief**:
+  - **Broadcast SOS**: Triggers instant emergency SMS dispatch to verified family proxies (**Priya Kumar**, **Harikit Kumar**).
+  - **Share GPS Fix**: Captures live location telemetry (*28.5672° N, 77.2100° E - New Delhi*).
+- **First-Responder Paramedic Brief**:
   - Severe allergies & contraindications (*Sulfa Antibiotics - Severe Anaphylaxis*, *Latex*).
   - Active chronic conditions (*Type 2 Diabetes*, *Hypertension*).
-  - Implanted medical devices (*Drug-eluting Cardiac Stent - LAD Artery*).
-- **Nearest Level-1 Trauma ER Card**: Live hospital bay view, open bed count, Google Maps GPS navigation (4 min), and direct ER desk dialer.
+  - Implanted medical devices (*Drug-eluting Cardiac Stent - LAD Artery, 2021*).
+- **Nearest Trauma ER Card**: Direct telemetry for **AIIMS New Delhi Emergency Trauma Centre** (Sri Aurobindo Marg, Ansari Nagar, New Delhi • 1.8 km / 5 min), open bed count (12 ER Beds Open), navigation routing, and direct ER desk dialer (`011-26588500`).
 
----
-
-### 5. Pre-Visit Clinical Agenda & Doctor Questions
-*Doctor's appointment spotlight, lab-correlated inquiry checklists, and collaborative clipboard questions.*
-
-<div align="center">
-  <img src="docs/screenshots/appointments_agenda.png" alt="Pre-Visit Clinical Agenda" width="720" style="border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);" />
-</div>
-
-- **Appointment Spotlight**: Countdown pill (*Tomorrow • In 22 hrs*), pre-check-in status (90%), clinic address (*Northside Pediatric Clinic • Suite 302*), and driving directions.
-- **Correlated Clinical Lab Reference**: Direct link to Quest CBC Oct 23 findings (*Mild Low Iron / Hgb 11.5*).
+### 5. Pre-Visit Clinical Agenda & Consultation Planner
+- **Doctor Consultation Spotlight**: Countdown pill (*Tomorrow • 10:30 AM IST*), pre-check-in status (90%), clinic address (**Apollo Children's Clinic • Saket Sector 6, New Delhi**), and driving directions.
+- **Correlated Diagnostic Lab Reference**: Direct link to Dr. Lal PathLabs CBC findings (*Mild Low Iron / Hgb 11.5*).
 - **Doctor Agenda Checklist**:
-  - Priority-1 Lab Suggested Flag: *"Discuss Maya's declining hemoglobin trend (11.5 g/dL) — elemental iron drops vs. pediatric gummies."*
-  - Parent observations on fatigue and school sleep schedule.
-  - Authorization paperwork tracking for EpiPen and asthma inhalers.
+  - Priority-1 Lab Suggested Flag: *"Discuss Ananya's declining hemoglobin trend (11.5 g/dL) — should we start elemental iron drops or pediatric supplements?"*
+  - Parent observations on mild afternoon fatigue and school sleep schedule.
+  - Medical paperwork tracking for **Delhi Public School (DPS)** annual health authorisations.
 - **Quick-Add Agenda Input**: Voice note trigger and instant question logging for upcoming clinical consultations.
 
----
-
-### 6. Clinical Safeguards & Risk Protections
-*HIPAA-compliant auto-archive protections, retention controls, and clinician access delegations.*
-
-<div align="center">
-  <img src="docs/screenshots/clinical_safeguards.png" alt="Clinical Safeguards" width="720" style="border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);" />
-</div>
-
-- **Caregiver Security Card**: Sarah Jenkins (Admin), HIPAA Tier-3 Biometric Passcode (FaceID / TouchID Active).
-- **Auto-Archive Safeguards**: Prevents permanent accidental deletion of clinical agenda questions and lab flags.
+### 6. Clinical Safeguards & Privacy Controls
+- **Caregiver Security Card**: Harikit Kumar (Admin • `harikit@swasthsathi.in`), Tier-3 Biometric Passcode (FaceID / TouchID / Device Credential).
+- **Auto-Archive Safeguards**: Prevents accidental or unauthorized deletion of clinical agenda questions, allergy profiles, and lab flags.
 - **Configurable Retention Period**: Segmented selector for `6 Months`, `1 Year`, or `Indefinitely`.
-- **Care Team Sharing Permissions**: Delegate role-based access to family proxies (*David Jenkins*) and attending physicians (*Dr. Emily Vance, MD*).
+- **Care Team Sharing Permissions**: Role-based access for family proxies (**Priya Kumar**) and verified physicians (**Dr. Neha Sharma, MD**).
+- **Risk Acknowledgment Modal**: 12-second auto-dismiss countdown bar that pauses on mouse hover, preventing unintended safeguard deactivation.
 
 ---
 
-### 7. Clinical Risk Acknowledgment Modal
-*Auto-dismiss progress bar, clinical deletion warnings, and safety confirmation protocols.*
-
-<div align="center">
-  <img src="docs/screenshots/risk_modal.png" alt="Risk Acknowledgment Modal" width="720" style="border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);" />
-</div>
-
-- **Interactive Progress Timer**: 12-second auto-dismiss countdown bar that pauses on mouse hover.
-- **Clinical Safety Advisory**: Clearly outlines the danger of unrecoverable data loss for pediatric medical histories.
-- **Safety Fallback Actions**: Prominent `Keep Safeguard Active (Recommended)` button alongside guarded `I Understand the Clinical Risk` confirmation.
-
----
-
-## 🏗 System Architecture & Tech Stack
+## 🏗 System Architecture & Data Flow
 
 ```mermaid
 graph TD
-  User([User / Family Caregiver]) --> WebApp[SwasthSathi Modern Web App]
+  User([User / Family Caregiver: Harikit Kumar]) --> WebApp[SwasthSathi Modern Web App]
 
-  subgraph Frontend [React 19 + TypeScript + Vite]
-    Header[Header & Member Context Switcher]
-    Dash[Dashboard & Attention Triage]
-    Meds[Routine Dose Tracker & Micro-Calendar]
-    Labs[Quest Lab Scanner & OCR Review]
-    SOS[Emergency SOS & ER Dispatch]
+  subgraph Frontend [React 18 + TypeScript + Vite]
+    Header[Header & Family Context Switcher]
+    Dash[Dashboard & Attention Triage Hub]
+    Meds[MediScan: Dose Tracker & Interactions]
+    Labs[Dr. Lal PathLabs Scanner & Biomarker Extraction]
+    SOS[112 Emergency SOS & AIIMS Trauma ER]
     Agenda[Pre-Visit Agenda & Doctor Notes]
     Safe[Clinical Safeguards & Risk Modal]
     BottomNav[5-Tab Persistent Navigation]
   end
 
-  subgraph OfflineDataLayer [Client-Side Offline Engine]
-    IDB[(IndexedDB: SwasthSathiClinicalV1)]
-    NB[Naive Bayes Offline ML Classifier]
-    KB[Drug Interaction Matrix]
+  subgraph OfflineDataLayer [Browser-Native Offline Engine]
+    IDB[(IndexedDB: SwasthSathiIndianV2)]
+    KB[Pharmacology & Drug Interaction Matrix]
+    ML[Naive Bayes Offline Symptom Classifier]
   end
 
-  subgraph BackendServices [Express.js Backend & AI]
+  subgraph BackendServices [Express.js Backend & AI Proxy]
     API[/api/v1/health]
     AIProxy[Gemini AI / Hybrid Clinical Fallback]
   end
@@ -178,24 +151,29 @@ graph TD
   Labs <--> IDB
   SOS <--> IDB
   Meds <--> KB
-  SOS <--> NB
+  SOS <--> ML
   Labs --> API
   API --> AIProxy
 ```
 
-| Layer | Technology | Key Capabilities |
+---
+
+## 💻 Technology Stack & Design Specifications
+
+| Category | Technology | Specification & Role |
 | :--- | :--- | :--- |
-| **UI Framework** | **React 19** + **TypeScript** | Type-safe stateful components, concurrent rendering |
-| **Build Tooling** | **Vite 7.3** | Lightning-fast HMR and optimized tree-shaken bundles |
-| **Design System** | **Tailwind CSS 3.3** + **Google Stitch** | `#006194` primary, `#006a61` teal, `#ba0035` SOS red, `Plus Jakarta Sans` |
-| **Icons & Typography**| **Material Symbols Outlined** | Dynamic variable font weights, op-size and fills |
-| **Offline Storage** | **IndexedDB (KeyPath: id)** | Full offline persistence for members, medications, vitals, labs, appointments |
-| **Machine Learning**| **Multinomial Naive Bayes** | Zero-latency browser-native triage symptom classification |
-| **Backend API** | **Node.js / Express + TypeScript** | AI inference proxy, PDF extraction, health status endpoints |
+| **Frontend Framework** | **React 18.3** | Concurrent rendering, hooks (`useMemo`, `useCallback`, `useContext`) |
+| **Language** | **TypeScript 5.9** | Strict type definitions across members, prescriptions, vitals, labs, and appointments |
+| **Build & Tooling** | **Vite 7.3** | Sub-second Hot Module Replacement (HMR) and tree-shaken production bundles |
+| **Design System** | **Tailwind CSS 3.3** + **Google Stitch** | Modern clinical design tokens: `#006194` (Primary Blue), `#006a61` (Teal), `#ba0035` (Emergency Red), `#faf8ff` (Surface) |
+| **Typography & Icons** | **Plus Jakarta Sans** + **Material Symbols** | High-legibility medical UI typography and variable symbol fonts |
+| **Offline Storage** | **IndexedDB (`idb` v8)** | Local storage for family profiles, appointments, medications, vitals, and lab records |
+| **Backend API** | **Node.js + Express + TypeScript** | Health check endpoints, AI proxy assistance, and document parsing endpoints |
+| **Emergency Standards** | **National Emergency `112`** | 1-tap direct dialer, live GPS telemetry, and first-responder triage briefs |
 
 ---
 
-## 🚀 Quickstart & Installation
+## 🛠 Getting Started & Local Development
 
 ### Prerequisites
 - **Node.js**: v18.0.0 or higher
@@ -211,33 +189,48 @@ cd SwasthSathi
 ```bash
 npm install
 ```
-*(Automatically installs root, frontend, and backend packages).*
+*(This command installs root dependencies and cascades into `frontend` and `backend`).*
 
-### 3. Start Development Servers
+### 3. Run the Development Servers
 ```bash
 npm run dev
 ```
-- **Frontend Web App**: `http://localhost:5173`
-- **Backend API Server**: `http://localhost:5000`
+- **Frontend Web Application**: [`http://localhost:5173`](http://localhost:5173)
+- **Backend API Server**: [`http://localhost:5000`](http://localhost:5000)
 
 ### 4. Build for Production
 ```bash
 npm run build
 ```
-Creates production-ready distributions in `frontend/dist` and `backend/dist`.
+Generates fully optimized production assets in `frontend/dist` and compiled JavaScript in `backend/dist`.
 
 ---
 
-## 🔒 Clinical Safety & HIPAA Compliance Guarantees
+## 🚑 Indian Emergency Health Numbers Reference
 
-1. **Zero Unintended Deletion**: Priority-1 agenda items, allergy records, and lab flags cannot be purged without affirmative user acknowledgment.
-2. **Offline-First Resilience**: All critical records, emergency numbers, and medication schedules reside locally in IndexedDB and remain operational during connectivity dropouts.
-3. **Paramedic Readout Mode**: One-tap access to blood group, implanted devices, and critical drug contraindications without authentication delays during acute emergencies.
-4. **Data Portability**: Full JSON health record export compliant with personal health record standards.
+SwasthSathi integrates standard Government of India emergency telecommunication protocols:
+
+| Service | Emergency Number | Dispatch Purpose |
+| :--- | :--- | :--- |
+| **National Emergency Helpline** | **`112`** | Unified single emergency response service (Police, Fire, Ambulance) |
+| **Ambulance Services** | **`108`** / **`102`** | Free ambulance transport for emergency trauma and maternal care |
+| **AIIMS Trauma Centre ER** | **`011-26588500`** | Direct triage desk for AIIMS New Delhi Level-1 Trauma Centre |
+| **National Health Portal Helpline** | **`1800-180-1104`** | Tele-health advisory and national health scheme support |
+
+---
+
+## 🔒 Privacy, Security & ABDM Readiness
+
+1. **Zero Cloud Requirement for Critical Vitals**: All core family records, medication logs, and lab values operate directly in local browser IndexedDB storage without mandatory cloud synchronization.
+2. **Affirmative Consent Safeguards**: Deletion or disabling of clinical records requires interactive user verification with a 12-second pause-on-hover safety countdown.
+3. **Paramedic First-Responder Accessibility**: Blood groups, stent implantation status, and severe drug contraindications are accessible immediately from the SOS view without locking or authentication barriers.
+4. **Data Portability**: Complete personal health records can be exported at any time as standard JSON for clinician sharing or hospital migration.
 
 ---
 
 <div align="center">
-  <b>SwasthSathi</b> — Built for families, clinicians, and life-saving care.  
-  Distributed under the MIT License.
+
+**SwasthSathi (स्वस्थ साथी)** — *Empowering Indian Families with Dignity, Precision, and Life-Saving Care.*  
+Licensed under the [MIT License](LICENSE).
+
 </div>

@@ -12,7 +12,7 @@ export const SchedulerPage: React.FC = () => {
   const [activeSubTab, setActiveSubTab] = useState<'sos' | 'agenda'>(sosMode ? 'sos' : 'sos');
 
   // Emergency Triage states
-  const [triageMemberId, setTriageMemberId] = useState<string>('m1'); // default Arthur
+  const [triageMemberId, setTriageMemberId] = useState<string>('m1'); // default Rajesh
   const [sosSent, setSosSent] = useState(false);
   const [gpsShared, setGpsShared] = useState(false);
 
@@ -20,20 +20,20 @@ export const SchedulerPage: React.FC = () => {
   const [agendaQuestions, setAgendaQuestions] = useState<Array<{ id: string; text: string; tag: string; checked: boolean; priority?: boolean }>>([
     {
       id: 'q1',
-      text: "Discuss Maya's declining hemoglobin trend (11.5 g/dL) — should we start elemental iron drops or pediatric gummy supplements?",
+      text: "Discuss Ananya's declining hemoglobin trend (11.5 g/dL) — should we start elemental iron drops or pediatric supplements?",
       tag: 'Nutrition & Bloodwork',
       checked: false,
       priority: true
     },
     {
       id: 'q2',
-      text: 'Is her mild afternoon fatigue related to iron levels or recent 3rd grade schedule changes?',
+      text: 'Is her mild afternoon fatigue related to iron levels or school routine changes?',
       tag: 'Daily Energy & Sleep',
       checked: false
     },
     {
       id: 'q3',
-      text: 'Sign and update annual school EpiPen & asthma authorization forms for North Elementary.',
+      text: 'Sign and update annual school health & medical authorization forms for Delhi Public School (DPS).',
       tag: 'School Paperwork',
       checked: true
     }
@@ -73,7 +73,7 @@ export const SchedulerPage: React.FC = () => {
     setSosSent(true);
     toast('🚨 Emergency SMS dispatch queued to verified contacts & proxies!', 'err');
     setTimeout(() => {
-      toast('Family proxies (David Jenkins, Sarah Jenkins) notified via SMS', 'ok');
+      toast('Family proxies (Priya Kumar, Harikit Kumar) notified via SMS', 'ok');
     }, 1500);
   };
 
@@ -83,16 +83,16 @@ export const SchedulerPage: React.FC = () => {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           setGpsShared(true);
-          toast(`📍 GPS Fix Shared: ${pos.coords.latitude.toFixed(4)}° N, ${pos.coords.longitude.toFixed(4)}° W`, 'ok');
+          toast(`📍 GPS Fix Shared: ${pos.coords.latitude.toFixed(4)}° N, ${pos.coords.longitude.toFixed(4)}° E`, 'ok');
         },
         () => {
           setGpsShared(true);
-          toast('📍 GPS Fix Shared: 41.8781° N, 87.6298° W (Simulated)', 'ok');
+          toast('📍 GPS Fix Shared: 28.5672° N, 77.2100° E (New Delhi)', 'ok');
         }
       );
     } else {
       setGpsShared(true);
-      toast('📍 GPS Fix Shared: 41.8781° N, 87.6298° W', 'ok');
+      toast('📍 GPS Fix Shared: 28.5672° N, 77.2100° E', 'ok');
     }
   };
 
@@ -204,7 +204,7 @@ export const SchedulerPage: React.FC = () => {
                   {activeTriageMember?.name} • {activeTriageMember?.age} yrs
                 </h1>
                 <p className="font-body-sm text-[11px] text-on-surface-variant">
-                  {activeTriageMember?.triageNotes || 'Primary Proxy: Sarah Jenkins (Daughter)'}
+                  {activeTriageMember?.triageNotes || 'Primary Proxy: Harikit Kumar (Son / Caregiver)'}
                 </p>
               </div>
             </div>
@@ -216,7 +216,7 @@ export const SchedulerPage: React.FC = () => {
           {/* Primary Emergency Dial Action (High Contrast, Stress-Resilient) */}
           <section className="flex flex-col space-y-2">
             <a
-              href="tel:911"
+              href="tel:112"
               className="w-full min-h-[64px] bg-tertiary hover:bg-tertiary-container text-on-tertiary rounded-2xl p-4 flex items-center justify-between shadow-lg shadow-tertiary/30 active:scale-[0.98] transition-all"
             >
               <div className="flex items-center gap-3">
@@ -227,10 +227,10 @@ export const SchedulerPage: React.FC = () => {
                 </div>
                 <div className="text-left">
                   <span className="font-headline-md text-base leading-none font-bold tracking-tight block">
-                    Call 911 / 112 Emergency
+                    Call 112 National Emergency
                   </span>
                   <span className="font-body-sm text-xs text-tertiary-fixed opacity-95">
-                    Direct cellular dispatch • Tap to initiate
+                    Direct national emergency dispatch • Tap to initiate
                   </span>
                 </div>
               </div>
@@ -256,7 +256,7 @@ export const SchedulerPage: React.FC = () => {
                     Broadcast SOS
                   </span>
                   <span className="font-label-sm text-[10px] text-on-surface-variant">
-                    SMS 3 family proxies
+                    SMS family proxies
                   </span>
                 </div>
               </button>
@@ -278,7 +278,7 @@ export const SchedulerPage: React.FC = () => {
                     Share GPS Fix
                   </span>
                   <span className="font-label-sm text-[10px] text-on-surface-variant truncate block">
-                    41.8781° N, 87.6298° W
+                    28.5672° N, 77.2100° E
                   </span>
                 </div>
               </button>
@@ -288,7 +288,7 @@ export const SchedulerPage: React.FC = () => {
             <div className="p-2.5 rounded-xl bg-surface-container-high flex items-start gap-2">
               <span className="material-symbols-outlined text-outline text-[18px] shrink-0 mt-0.5">info</span>
               <p className="font-label-sm text-[11px] text-on-surface-variant leading-snug">
-                Do not rely solely on mobile notifications for acute cardiac, airway, or unconscious emergencies. Dial 911 immediately.
+                Do not rely solely on mobile notifications for acute cardiac, airway, or unconscious emergencies. Dial 112 or 108 immediately.
               </p>
             </div>
           </section>
@@ -372,8 +372,8 @@ export const SchedulerPage: React.FC = () => {
               >
                 <div className="absolute inset-0 bg-gradient-to-t from-inverse-surface/85 via-transparent to-transparent flex items-end p-3">
                   <div className="text-inverse-on-surface">
-                    <p className="font-headline-sm text-sm font-bold leading-tight">Northwest Memorial Hospital ER</p>
-                    <p className="font-body-sm text-[11px] opacity-90">251 E Huron St, Chicago • 1.2 miles (4 min)</p>
+                    <p className="font-headline-sm text-sm font-bold leading-tight">AIIMS New Delhi Emergency Trauma Centre</p>
+                    <p className="font-body-sm text-[11px] opacity-90">Sri Aurobindo Marg, Ansari Nagar, New Delhi • 1.8 km (5 min)</p>
                   </div>
                 </div>
               </div>
@@ -386,10 +386,10 @@ export const SchedulerPage: React.FC = () => {
                   className="flex-1 min-h-[40px] bg-primary text-on-primary rounded-xl flex items-center justify-center gap-1.5 font-label-lg text-xs font-bold shadow-xs active:scale-95 transition-all"
                 >
                   <span className="material-symbols-outlined text-[17px]">directions</span>
-                  <span>Navigate (4m)</span>
+                  <span>Navigate (5m)</span>
                 </a>
                 <a
-                  href="tel:5550193400"
+                  href="tel:01126588500"
                   className="min-h-[40px] px-4 bg-surface-container-high text-on-surface rounded-xl flex items-center justify-center gap-1.5 font-label-lg text-xs font-semibold active:scale-95 transition-all"
                 >
                   <span className="material-symbols-outlined text-[17px]">call</span>
@@ -411,7 +411,7 @@ export const SchedulerPage: React.FC = () => {
               <div className="flex items-center gap-1.5 bg-secondary-container text-on-secondary-container px-2.5 py-1 rounded-full">
                 <span className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
                 <span className="font-label-sm text-[11px] font-bold uppercase tracking-wider">
-                  Tomorrow • 10:30 AM
+                  Tomorrow • 10:30 AM IST
                 </span>
               </div>
               <div className="flex items-center gap-1 bg-surface-container px-2 py-0.5 rounded-full text-on-surface-variant font-label-sm text-[11px] font-semibold">
@@ -427,7 +427,7 @@ export const SchedulerPage: React.FC = () => {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="font-label-md text-xs font-bold text-on-surface">Maya Jenkins</span>
+                  <span className="font-label-md text-xs font-bold text-on-surface">Ananya Kumar</span>
                   <span className="font-label-sm text-[10px] text-on-surface-variant bg-surface-container px-1.5 py-0.2 rounded-full">
                     8 yrs • Daughter
                   </span>
@@ -437,7 +437,7 @@ export const SchedulerPage: React.FC = () => {
                 </p>
                 <div className="flex items-center gap-1 text-on-surface-variant mt-1">
                   <span className="material-symbols-outlined text-[16px] text-primary">stethoscope</span>
-                  <span className="font-body-sm text-[11px] font-medium">Dr. Emily Vance, MD • Northside Pediatrics</span>
+                  <span className="font-body-sm text-[11px] font-medium">Dr. Neha Sharma, MD • Apollo Children's Clinic</span>
                 </div>
               </div>
             </div>
@@ -446,13 +446,13 @@ export const SchedulerPage: React.FC = () => {
             <div className="bg-surface-container-low rounded-xl p-2.5 flex flex-col gap-1.5">
               <div className="flex items-center gap-2 text-on-surface text-xs font-semibold">
                 <span className="material-symbols-outlined text-primary text-[18px]">calendar_today</span>
-                <span>Wednesday, Oct 25 • 10:30 AM – 11:00 AM EDT</span>
+                <span>Tomorrow • 10:30 AM – 11:00 AM IST</span>
               </div>
               <div className="flex items-start gap-2 text-on-surface-variant text-[11px]">
                 <span className="material-symbols-outlined text-secondary text-[18px] shrink-0">pin_drop</span>
                 <div>
-                  <span className="block text-on-surface font-medium">Northside Pediatric Clinic • Suite 302</span>
-                  <span className="text-on-surface-variant">742 Medical Center Blvd, Chicago (15 min drive)</span>
+                  <span className="block text-on-surface font-medium">Apollo Children's Clinic • Saket Sector 6</span>
+                  <span className="text-on-surface-variant">Plot 1, Institutional Area, Saket, New Delhi (15 min drive)</span>
                 </div>
               </div>
             </div>
@@ -468,12 +468,12 @@ export const SchedulerPage: React.FC = () => {
                     Referenced Clinical Context
                   </span>
                   <span className="font-body-sm text-xs text-on-surface font-semibold truncate block">
-                    Quest CBC Oct 23 (Mild Low Iron / Hgb 11.5)
+                    Dr. Lal PathLabs CBC (Mild Low Iron / Hgb 11.5)
                   </span>
                 </div>
               </div>
               <button
-                onClick={() => toast('Opening correlated Quest Lab report...', 'info')}
+                onClick={() => toast('Opening correlated Dr. Lal PathLabs report...', 'info')}
                 className="font-label-sm text-xs font-bold text-primary hover:underline shrink-0"
               >
                 Review
@@ -503,7 +503,7 @@ export const SchedulerPage: React.FC = () => {
             </div>
 
             <p className="font-body-sm text-xs text-on-surface-variant">
-              Build and prioritize topics for Dr. Vance's 15-minute exam. The agenda syncs directly to the clinician clipboard.
+              Build and prioritize topics for Dr. Neha Sharma's 15-minute consultation. The agenda syncs directly to the clinician clipboard.
             </p>
 
             {/* Checklist */}
@@ -559,7 +559,7 @@ export const SchedulerPage: React.FC = () => {
                 value={newQuestionText}
                 onChange={(e) => setNewQuestionText(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddQuestion()}
-                placeholder="Type a reminder for Dr. Vance..."
+                placeholder="Type a reminder for Dr. Neha Sharma..."
                 className="flex-1 min-h-[40px] px-3 bg-surface-container-low rounded-xl text-xs text-on-surface placeholder:text-outline outline-none focus:ring-1 focus:ring-primary"
               />
               <button

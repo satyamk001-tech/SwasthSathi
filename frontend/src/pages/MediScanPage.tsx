@@ -359,7 +359,7 @@ export const MediScanPage: React.FC = () => {
                 </span>
               </div>
 
-              {/* David: Amlodipine */}
+              {/* Priya: Amlodipine */}
               <div className="rounded-xl bg-surface-container-lowest p-3 shadow-xs border border-surface-container flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <span className="material-symbols-outlined text-secondary text-[22px]" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -368,7 +368,7 @@ export const MediScanPage: React.FC = () => {
                   <div>
                     <div className="flex items-center gap-1.5">
                       <p className="font-label-lg text-xs font-bold text-on-surface">Amlodipine 5mg</p>
-                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant">David</span>
+                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant">Priya</span>
                     </div>
                     <p className="font-body-sm text-[11px] text-on-surface-variant">
                       Taken at 8:05 AM • Blood pressure daily control
@@ -378,7 +378,7 @@ export const MediScanPage: React.FC = () => {
                 <span className="font-label-sm text-[10px] text-secondary font-bold">Recorded</span>
               </div>
 
-              {/* Arthur: Glipizide */}
+              {/* Rajesh: Glipizide */}
               <div className="rounded-xl bg-surface-container-lowest p-3 shadow-xs border border-surface-container flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <span className="material-symbols-outlined text-secondary text-[22px]" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -387,7 +387,7 @@ export const MediScanPage: React.FC = () => {
                   <div>
                     <div className="flex items-center gap-1.5">
                       <p className="font-label-lg text-xs font-bold text-on-surface">Glipizide 5mg</p>
-                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant">Arthur</span>
+                      <span className="text-[10px] px-1.5 py-0.2 rounded bg-surface-container text-on-surface-variant">Rajesh</span>
                     </div>
                     <p className="font-body-sm text-[11px] text-on-surface-variant">
                       Taken at 8:15 AM • Pre-breakfast antidiabetic
@@ -412,17 +412,17 @@ export const MediScanPage: React.FC = () => {
                 </span>
               </div>
 
-              {/* Maya: Vitamin D3 Drops */}
+              {/* Ananya: Vitamin D3 Drops */}
               {!snoozedMap['md4'] && (
                 <div className="rounded-2xl bg-surface-container-lowest p-3.5 shadow-sm border border-surface-container flex flex-col gap-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center font-bold text-xs">
-                        MJ
+                        AK
                       </div>
                       <div>
                         <h4 className="font-label-lg text-xs font-bold text-on-surface">Vitamin D3 Drops (1000 IU)</h4>
-                        <p className="font-body-sm text-[11px] text-on-surface-variant">Maya (8y) • Take with lunch</p>
+                        <p className="font-body-sm text-[11px] text-on-surface-variant">Ananya (8y) • Take with lunch</p>
                       </div>
                     </div>
                     {takenMap['md4'] ? (
@@ -457,16 +457,16 @@ export const MediScanPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Maya: Elemental Iron Drops */}
+              {/* Ananya: Elemental Iron Drops */}
               <div className="rounded-2xl bg-surface-container-lowest p-3.5 shadow-sm border border-surface-container flex flex-col gap-2.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center font-bold text-xs">
-                      MJ
+                      AK
                     </div>
                     <div>
                       <h4 className="font-label-lg text-xs font-bold text-on-surface">Elemental Iron Drops 15mg</h4>
-                      <p className="font-body-sm text-[11px] text-on-surface-variant">Maya (8y) • Pair with orange juice</p>
+                      <p className="font-body-sm text-[11px] text-on-surface-variant">Ananya (8y) • Pair with lemon juice</p>
                     </div>
                   </div>
                   {takenMap['md5'] ? (
@@ -515,13 +515,13 @@ export const MediScanPage: React.FC = () => {
                 </span>
               </div>
 
-              {/* Arthur: Lisinopril */}
+              {/* Rajesh: Lisinopril */}
               <div className="rounded-xl bg-surface-container-lowest p-3 shadow-xs border border-surface-container flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <span className="material-symbols-outlined text-outline text-[22px]">schedule</span>
                   <div>
                     <p className="font-label-lg text-xs font-bold text-on-surface">Lisinopril 10mg</p>
-                    <p className="font-body-sm text-[11px] text-on-surface-variant">Arthur • Blood pressure management</p>
+                    <p className="font-body-sm text-[11px] text-on-surface-variant">Rajesh • Blood pressure management</p>
                   </div>
                 </div>
                 <button
@@ -532,13 +532,13 @@ export const MediScanPage: React.FC = () => {
                 </button>
               </div>
 
-              {/* David: Atorvastatin */}
+              {/* Priya: Atorvastatin */}
               <div className="rounded-xl bg-surface-container-lowest p-3 shadow-xs border border-surface-container flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <span className="material-symbols-outlined text-outline text-[22px]">schedule</span>
                   <div>
                     <p className="font-label-lg text-xs font-bold text-on-surface">Atorvastatin 10mg</p>
-                    <p className="font-body-sm text-[11px] text-on-surface-variant">David • Post-dinner cholesterol</p>
+                    <p className="font-body-sm text-[11px] text-on-surface-variant">Priya • Post-dinner cholesterol</p>
                   </div>
                 </div>
                 <button

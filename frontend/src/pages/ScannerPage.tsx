@@ -41,8 +41,8 @@ export const ScannerPage: React.FC = () => {
       const found = members.find((m) => m.id === selectedMemberId);
       if (found) return found;
     }
-    // Default to Maya (m2) if available, or first member
-    return members.find((m) => m.name.includes('Maya')) || members[0] || null;
+    // Default to Ananya (m2) if available, or first member
+    return members.find((m) => m.name.includes('Ananya')) || members[0] || null;
   }, [members, selectedMemberId]);
 
   // Relevant report for current member
@@ -58,7 +58,7 @@ export const ScannerPage: React.FC = () => {
     setScanStatus('Reading digital diagnostic file via OCR...');
 
     try {
-      setScanStatus('Parsing Quest pediatric biomarkers with AI...');
+      setScanStatus('Parsing pediatric biomarkers with AI...');
       const targetMemberId = currentMember?.id || 'm2';
       const analyzedReport = await analyzeLabFile(file, targetMemberId);
 
@@ -87,19 +87,19 @@ export const ScannerPage: React.FC = () => {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2.5">
             <div className="w-11 h-11 rounded-full bg-secondary-fixed flex items-center justify-center font-bold text-on-secondary-fixed text-base shadow-xs">
-              {currentMember?.avatar || 'MJ'}
+              {currentMember?.avatar || 'AK'}
             </div>
             <div>
               <div className="flex items-center space-x-1.5 flex-wrap">
                 <h2 className="font-headline-sm text-base text-on-surface font-extrabold tracking-tight">
-                  {currentMember?.name || 'Maya Jenkins'}
+                  {currentMember?.name || 'Ananya Kumar'}
                 </h2>
                 <span className="bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded-full font-label-sm text-[11px] font-bold">
                   {currentMember?.role || 'Daughter'} • {currentMember?.age || 8} yrs
                 </span>
               </div>
               <p className="font-body-sm text-xs text-on-surface-variant">
-                Pediatric Medical Record #FC-89420 • Quest Diagnostics
+                Pediatric Health Record #SS-89420 • Dr. Lal PathLabs
               </p>
             </div>
           </div>
@@ -157,7 +157,7 @@ export const ScannerPage: React.FC = () => {
               </span>
             </div>
             <p className="font-body-sm text-xs text-on-tertiary-fixed leading-tight">
-              AI-assisted transcription requires guardian / clinician review before saving into official health history. Please cross-examine with the original Quest document.
+              AI-assisted transcription requires guardian / clinician review before saving into official health history. Please cross-examine with the original Dr. Lal PathLabs report.
             </p>
           </div>
         </div>
@@ -180,7 +180,7 @@ export const ScannerPage: React.FC = () => {
             </div>
             <div className="space-y-0.5 min-w-0">
               <p className="font-label-lg text-xs font-bold text-on-surface truncate">
-                {currentReport?.reportName || 'Pediatric_CBC_QuestLabs_Oct2023.pdf'}
+                {currentReport?.reportName || 'Pediatric_CBC_DrLalPathLabs_Oct2023.pdf'}
               </p>
               <p className="font-body-sm text-xs text-on-surface-variant">
                 1.8 MB • Uploaded {fmtDate(currentReport?.date || today())}
@@ -254,7 +254,7 @@ export const ScannerPage: React.FC = () => {
                 Laboratory Facility
               </span>
               <span className="font-label-lg text-xs font-bold text-on-surface">
-                {currentReport?.labName || 'Quest Diagnostics Regional Lab (East)'}
+                {currentReport?.labName || 'Dr. Lal PathLabs National Reference Lab, New Delhi'}
               </span>
             </div>
             <span className="material-symbols-outlined text-[18px] text-secondary">verified</span>
@@ -266,7 +266,7 @@ export const ScannerPage: React.FC = () => {
                 Ordering Clinician
               </span>
               <span className="font-label-lg text-xs font-bold text-on-surface">
-                {currentReport?.doctorName || 'Dr. Emily Vance, MD (Pediatrics)'}
+                {currentReport?.doctorName || 'Dr. Neha Sharma, MD (Pediatrics)'}
               </span>
             </div>
             <span className="material-symbols-outlined text-[18px] text-secondary">stethoscope</span>
@@ -370,7 +370,7 @@ export const ScannerPage: React.FC = () => {
           className="w-full min-h-[42px] rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
         >
           <span className="material-symbols-outlined text-[18px] text-primary">print</span>
-          <span>Print / Export Quest Clinical Summary</span>
+          <span>Print / Export Dr. Lal PathLabs Clinical Summary</span>
         </button>
       </div>
     </div>
