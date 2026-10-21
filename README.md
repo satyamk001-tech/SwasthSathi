@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="docs/screenshots/dashboard.png" alt="SwasthSathi Family Health Dashboard" width="800" style="border-radius: 18px; box-shadow: 0 12px 40px rgba(0,0,0,0.12);" />
+<img src="docs/screenshots/dashboard.png" alt="SwasthSathi Family Health Dashboard" width="420" style="border-radius: 14px; box-shadow: 0 6px 20px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.08);" />
 
 <br/><br/>
 
