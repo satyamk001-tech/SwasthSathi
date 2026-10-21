@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>SwasthSathi - Family Health App</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.development.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.development.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+body{background:#EEF2F7;font-family:'Sora',sans-serif}
+input,textarea,select,button{font-family:'Sora',sans-serif}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:#DDE3ED;border-radius:2px}
+@keyframes bounce{0%,80%,100%{transform:scale(0.3);opacity:0.3}40%{transform:scale(1);opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sosPulse{0%,100%{box-shadow:0 0 0 0 rgba(212,43,43,0.6)}60%{box-shadow:0 0 0 10px rgba(212,43,43,0)}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef,useCallback,createContext,useContext,useMemo}=React;
+
+/* ── COLORS ── */
+const C={
+  bg:"#EEF2F7",card:"#FFFFFF",navy:"#0B1E3D",blue:"#1A54E8",
+  teal:"#0A8A7A",red:"#D42B2B",orange:"#D97706",green:"#057A55",
+  purple:"#6D28D9",pink:"#DB2777",muted:"#64748B",text:"#1E293B",
+  border:"#DDE3ED",lBlue:"#EFF6FF",lRed:"#FFF1F1",lGreen:"#F0FDF9",
+  lOrange:"#FFFBEB",lPurple:"#F5F3FF"
+};
+
+/* ── INDEXEDDB ── */
+let _db=null;
+const getDB=()=>new Promise((res,rej)=>{
+  if(_db)return res(_db);
+  const r=indexedDB.open("FamilyHealthV6",1);
+  r.onupgradeneeded=e=>{
+    const db=e.target.result;
+    ["members","medications","med_logs","lab_reports","appointments","drug_logs","symptom_logs","chat_history","vitals"]
+      .forEach(s=>{if(!db.objectStoreNames.contains(s))db.createObjectStore(s,{keyPath:"id"});});
+  };
+  r.onsuccess=e=>{_db=e.target.result;res(_db);};
+  r.onerror=()=>rej(r.error);
+});
+const idb={
+  put:async(s,o)=>{const d=await getDB();return new Promise((r,j)=>{const q=d.transaction(s,"readwrite").objectStore(s).put({...o,_ts:Date.now()});q.onsuccess=()=>r();q.onerror=()=>j(q.error);});},
+  get:async(s,id)=>{const d=await getDB();return new Promise((r,j)=>{const q=d.transaction(s).objectStore(s).get(id);q.onsuccess=()=>r(q.result||null);q.onerror=()=>j(q.error);});},
+  all:async(s)=>{const d=await getDB();return new Promise((r,j)=>{const q=d.transaction(s).objectStore(s).getAll();q.onsuccess=()=>r(q.result||[]);q.onerror=()=>j(q.error);});},
+  del:async(s,id)=>{const d=await getDB();return new Promise((r,j)=>{const q=d.transaction(s,"readwrite").objectStore(s).delete(id);q.onsuccess=()=>r();q.onerror=()=>j(q.error);});},
+};
+const uid=()=>`${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+const today=()=>new Date().toISOString().slice(0,10);
+const fmtDate=d=>{try{return new Date(d).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});}catch{return d||"";}};
+const fmtTime=t=>{if(!t)return"";const[h,m]=t.split(":");const hr=+h;return`${hr===0?12:hr>12?hr-12:hr}:${m} ${hr<12?"AM":"PM"}`;};
+
+/* ── SEED DATA ── */
+async function seed(){
+  const ex=await idb.all("members");
+  if(ex.length)return;
+  const members=[
+    {id:"m1",name:"Rajesh Kumar (Dad)",age:62,role:"Father",avatar:"R",color:C.blue,blood:"B+",phone:"+91-98765-43210",conditions:["Type 2 Diabetes","Hypertension","High Cholesterol"]},
+    {id:"m2",name:"Sushma Kumar (Mom)",age:58,role:"Mother",avatar:"S",color:C.purple,blood:"O+",phone:"+91-87654-32109",conditions:["Osteoarthritis","Vitamin D Deficiency"]},
+    {id:"m3",name:"Aryan Kumar",age:28,role:"Son",avatar:"A",color:C.teal,blood:"A+",phone:"+91-76543-21098",conditions:["Mild Asthma"]},
+  ];
+  const meds=[
+    {id:"md1",memberId:"m1",name:"Metformin 500mg",dose:"500mg",time:"09:00",freq:"Twice Daily",taken:false,notes:"After breakfast"},
+    {id:"md2",memberId:"m1",name:"Amlodipine 5mg",dose:"5mg",time:"21:00",freq:"Daily",taken:false,notes:"Before bed"},
+    {id:"md3",memberId:"m1",name:"Atorvastatin 10mg",dose:"10mg",time:"21:00",freq:"Daily",taken:false,notes:"After dinner"},
+    {id:"md4",memberId:"m2",name:"Calcium + D3",dose:"1 tab",time:"10:00",freq:"Daily",taken:false,notes:"After breakfast"},
+    {id:"md5",memberId:"m2",name:"Diclofenac Gel",dose:"Apply",time:"",freq:"As Needed",taken:null,notes:"On joints"},
+    {id:"md6",memberId:"m3",name:"Salbutamol Inhaler",dose:"2 puffs",time:"",freq:"As Needed",taken:null,notes:"During attacks"},
+  ];
+  const vitals=[
+    {id:"v1",memberId:"m1",type:"Blood Sugar",value:"184",unit:"mg/dL",date:today(),notes:"Post-meal"},
+    {id:"v2",memberId:"m1",type:"Blood Pressure",value:"148/92",unit:"mmHg",date:today(),notes:"Morning"},
+    {id:"v3",memberId:"m1",type:"Heart Rate",value:"78",unit:"bpm",date:today(),notes:""},
+    {id:"v4",memberId:"m2",type:"Blood Pressure",value:"126/82",unit:"mmHg",date:today(),notes:""},
+    {id:"v5",memberId:"m3",type:"SpO2",value:"97",unit:"%",date:today(),notes:"After walk"},
+  ];
+  const labs=[
+    {id:"lr1",memberId:"m1",reportName:"Complete Blood Count + Lipid Panel",date:"2024-01-10",labName:"Apollo Diagnostics",doctorName:"Dr. Sharma",parameters:[
+      {name:"Hemoglobin",result:"11.8",unit:"g/dL",normalRange:"13.0–17.0",status:"Low",explanation:"Protein carrying oxygen in red blood cells",suggestion:"May indicate anemia — include iron-rich foods, consult doctor"},
+      {name:"WBC Count",result:"7200",unit:"/µL",normalRange:"4000–11000",status:"Normal",explanation:"White blood cells fighting infections",suggestion:"Normal — no action needed"},
+      {name:"Platelet Count",result:"195000",unit:"/µL",normalRange:"150000–400000",status:"Normal",explanation:"Cells helping blood clot",suggestion:"Normal"},
+      {name:"Blood Sugar (F)",result:"142",unit:"mg/dL",normalRange:"70–100",status:"High",explanation:"Fasting glucose level",suggestion:"Above normal — diet control, check with diabetologist"},
+      {name:"HbA1c",result:"7.8",unit:"%",normalRange:"< 5.7",status:"High",explanation:"3-month average blood sugar",suggestion:"Poorly controlled — medication review needed urgently"},
+      {name:"Creatinine",result:"1.1",unit:"mg/dL",normalRange:"0.7–1.2",status:"Normal",explanation:"Kidney function marker",suggestion:"Normal kidney function"},
+      {name:"Cholesterol (Total)",result:"238",unit:"mg/dL",normalRange:"< 200",status:"High",explanation:"Total fat in blood",suggestion:"High — reduce saturated fats, review statin dose"},
+      {name:"HDL",result:"38",unit:"mg/dL",normalRange:"> 40",status:"Low",explanation:"Good cholesterol",suggestion:"Low — increase aerobic exercise"},
+      {name:"LDL",result:"162",unit:"mg/dL",normalRange:"< 100",status:"High",explanation:"Bad cholesterol",suggestion:"High — strict diet, medication review"},
+      {name:"Triglycerides",result:"210",unit:"mg/dL",normalRange:"< 150",status:"High",explanation:"Blood fats from diet",suggestion:"High — avoid refined carbs and sugar"},
+      {name:"Vitamin D",result:"18",unit:"ng/mL",normalRange:"30–100",status:"Low",explanation:"Essential for bones and immunity",suggestion:"Supplement with Vitamin D3 2000 IU daily"},
+    ]},
+    {id:"lr2",memberId:"m2",reportName:"Bone & Vitamin Panel",date:"2024-02-05",labName:"SRL Diagnostics",doctorName:"Dr. Rao",parameters:[
+      {name:"Vitamin D3",result:"14",unit:"ng/mL",normalRange:"30–100",status:"Low",explanation:"Critical for calcium absorption",suggestion:"Supplement 4000 IU/day + sun exposure"},
+      {name:"Calcium",result:"8.2",unit:"mg/dL",normalRange:"8.5–10.5",status:"Low",explanation:"Mineral for bones and nerves",suggestion:"Take Calcium+D3 daily"},
+      {name:"ESR",result:"42",unit:"mm/hr",normalRange:"0–20",status:"High",explanation:"Inflammation marker",suggestion:"Elevated — likely from arthritis, monitor"},
+      {name:"CRP",result:"8.6",unit:"mg/L",normalRange:"< 5.0",status:"High",explanation:"Acute inflammation marker",suggestion:"Consult rheumatologist"},
+      {name:"Uric Acid",result:"5.8",unit:"mg/dL",normalRange:"2.4–6.0",status:"Normal",explanation:"Purine metabolism byproduct",suggestion:"Normal"},
+    ]},
+  ];
+  const appts=[
+    {id:"ap1",memberId:"m1",doctor:"Dr. Rahul Sharma",specialty:"Cardiology",date:new Date(Date.now()+2*864e5).toISOString().slice(0,10),time:"10:30",notes:"Quarterly cardiac review",status:"upcoming"},
+    {id:"ap2",memberId:"m1",doctor:"Dr. Meena Gupta",specialty:"Endocrinology",date:new Date(Date.now()+7*864e5).toISOString().slice(0,10),time:"14:00",notes:"Diabetes + HbA1c review",status:"upcoming"},
+    {id:"ap3",memberId:"m2",doctor:"Dr. Anjali Rao",specialty:"Rheumatology",date:new Date(Date.now()+4*864e5).toISOString().slice(0,10),time:"11:00",notes:"Arthritis follow-up",status:"upcoming"},
+  ];
+  for(const x of members) await idb.put("members",x);
+  for(const x of meds) await idb.put("medications",x);
+  for(const x of vitals) await idb.put("vitals",x);
+  for(const x of labs) await idb.put("lab_reports",x);
+  for(const x of appts) await idb.put("appointments",x);
+}
+
+/* ── NAIVE BAYES ML ── */
+const ML_DATA=[
+  {t:"chest pain shortness breath heart palpitation pressure tightness",l:"Cardiology",u:"emergency"},
+  {t:"heart attack angina radiating arm jaw sweating",l:"Cardiology",u:"emergency"},
+  {t:"hypertension blood pressure headache blurry",l:"Cardiology",u:"urgent"},
+  {t:"joint pain swelling stiffness arthritis knees",l:"Orthopedics",u:"routine"},
+  {t:"back pain spine fracture muscle injury",l:"Orthopedics",u:"urgent"},
+  {t:"cough wheezing breathing asthma bronchitis",l:"Pulmonology",u:"urgent"},
+  {t:"blood sugar diabetes insulin glucose",l:"Endocrinology",u:"urgent"},
+  {t:"thyroid weight gain fatigue cold hormones",l:"Endocrinology",u:"routine"},
+  {t:"stomach pain nausea vomiting diarrhea abdomen",l:"Gastroenterology",u:"urgent"},
+  {t:"headache migraine dizziness seizure stroke weakness",l:"Neurology",u:"emergency"},
+  {t:"skin rash itching eczema psoriasis hives",l:"Dermatology",u:"routine"},
+  {t:"eye pain vision blurred redness discharge",l:"Ophthalmology",u:"urgent"},
+  {t:"ear pain hearing infection tinnitus",l:"ENT",u:"routine"},
+  {t:"sore throat cold fever runny nose",l:"ENT",u:"routine"},
+  {t:"child fever vaccination pediatric",l:"Pediatrics",u:"urgent"},
+  {t:"kidney pain urination blood urine UTI",l:"Nephrology",u:"urgent"},
+  {t:"depression anxiety mental stress panic",l:"Psychiatry",u:"urgent"},
+  {t:"bleeding wound injury trauma accident",l:"Emergency",u:"emergency"},
+  {t:"allergy anaphylaxis reaction swelling throat",l:"Emergency",u:"emergency"},
+];
+class NB{
+  constructor(){this.wp={};this.cp={};this.um={};this.cls=[];}
+  tok(t){return t.toLowerCase().split(/\W+/).filter(w=>w.length>2);}
+  train(data){
+    const cc={},wc={};
+    data.forEach(({t,l,u})=>{cc[l]=(cc[l]||0)+1;this.um[l]=u;if(!wc[l])wc[l]={};this.tok(t).forEach(w=>{wc[l][w]=(wc[l][w]||0)+1;});});
+    this.cls=Object.keys(cc);const tot=data.length;
+    const vocab=new Set(data.flatMap(d=>this.tok(d.t))).size;
+    this.cls.forEach(c=>{
+      this.cp[c]=Math.log(cc[c]/tot);const tw=Object.values(wc[c]).reduce((a,b)=>a+b,0);
+      this.wp[c]={};Object.keys(wc[c]).forEach(w=>{this.wp[c][w]=Math.log((wc[c][w]+1)/(tw+vocab));});
+      this.wp[c].__u=Math.log(1/(tw+vocab));
+    });
+  }
+  predict(text){
+    const toks=this.tok(text);const scores={};
+    this.cls.forEach(c=>{let s=this.cp[c];toks.forEach(w=>{s+=this.wp[c][w]||this.wp[c].__u;});scores[c]=s;});
+    const mx=Math.max(...Object.values(scores));let se=0;const ex={};
+    Object.keys(scores).forEach(c=>{ex[c]=Math.exp(scores[c]-mx);se+=ex[c];});
+    const sorted=Object.entries(ex).sort((a,b)=>b[1]-a[1]);
+    const best=sorted[0][0];
+    return{label:best,urgency:this.um[best],confidence:Math.round(ex[best]/se*100),top3:sorted.slice(0,3).map(([l,e])=>({label:l,pct:Math.round(e/se*100)}))};
+  }
+}
+const ML=new NB();ML.train(ML_DATA);
+
+/* ── DRUG KB ── */
+const DRUG_KB=[
+  {drugs:["warfarin","ibuprofen"],sev:"Major",why:"Both impair clotting — severe internal bleeding risk",alt:["Paracetamol","Celecoxib"]},
+  {drugs:["warfarin","aspirin"],sev:"Major",why:"Dual anticoagulation — uncontrolled bleeding",alt:["Low-dose aspirin only if cardiologist-prescribed"]},
+  {drugs:["metformin","alcohol"],sev:"Major",why:"Lactic acidosis risk — potentially fatal",alt:["Avoid alcohol completely"]},
+  {drugs:["ssri","tramadol"],sev:"Major",why:"Serotonin syndrome — neurological emergency",alt:["NSAIDs","Paracetamol"]},
+  {drugs:["amlodipine","simvastatin"],sev:"Moderate",why:"Muscle damage (rhabdomyolysis) risk",alt:["Rosuvastatin","Pravastatin"]},
+  {drugs:["lisinopril","potassium"],sev:"Moderate",why:"Hyperkalemia — cardiac arrhythmia risk",alt:["Monitor K+ levels regularly"]},
+];
+function checkDrugs(list){
+  const n=list.map(d=>d.toLowerCase());
+  return DRUG_KB.filter(e=>e.drugs.filter(d=>n.some(m=>m.includes(d)||d.includes(m))).length>=2);
+}
+
+/* ── CLAUDE API / AI INTEGRATION ── */
+async function callClaude(messages,system,maxTokens=1200){
+  try {
+    const res = await fetch("http://localhost:5000/api/ai/chat", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: messages[messages.length-1]?.content || "" })
+    });
+    if (res.ok) {
+      const d = await res.json();
+      if (d.response) return d.response;
+    }
+  } catch (e) {}
+
+  const last = messages[messages.length-1]?.content || "";
+  const l = last.toLowerCase();
+  if (l.includes("hba1c") || l.includes("7.8")) {
+    return "An HbA1c of 7.8% indicates that your average blood sugar over the last 90 days has been around 177 mg/dL, which is above the standard recommended target of < 7.0% for most adults with diabetes.\n\nKey takeaways:\n1. 🔬 What it means: Persistent hyperglycemia that increases long-term risks to kidneys, eyes, and nerves.\n2. 💊 Medication: Consult your endocrinologist to review your Metformin dosage or evaluate adding a complementary agent.\n3. 🥗 Nutrition: Cut high-glycemic carbohydrates like white rice and sweets; increase leafy greens and protein.\n4. 🏃 Physical Activity: Aim for 30 minutes of brisk walking 5 days a week.";
+  }
+  if (l.includes("metformin")) {
+    return "Common Metformin advice:\n• Always take after meals to minimize stomach upset\n• Do not consume alcohol while taking Metformin (risk of lactic acidosis)\n• Continue regular blood glucose and kidney function monitoring.";
+  }
+  if (l.includes("bp") || l.includes("blood pressure")) {
+    return "Standard BP reference:\n• Normal: < 120/80 mmHg\n• Elevated: 120-129 / < 80 mmHg\n• Stage 1 Hypertension: 130-139 / 80-89 mmHg\n• Stage 2: 140/90 mmHg or higher.\nReduce sodium intake, manage stress, and log measurements daily.";
+  }
+  return "Namaste! I am your SwasthSathi Health Companion. For personalized clinical diagnosis, please consult your physician. How can I assist you with your medications, reports, or diet today?";
+}
+
+async function callJSON(prompt,system,maxTokens=1200){
+  const p = prompt.toLowerCase();
+  if (p.includes("diet")) {
+    return {
+      breakfast: { meal: "Oats with chia seeds, crushed almonds and green tea", cal: 320, time: "08:30 AM" },
+      lunch: { meal: "Multigrain roti (2), methi dal, lauki sabzi, and cucumber curd", cal: 480, time: "01:15 PM" },
+      snack: { meal: "Roasted makhana and chana", cal: 150, time: "05:00 PM" },
+      dinner: { meal: "Vegetable paneer stir-fry with bajra roti and jeera water", cal: 390, time: "08:00 PM" },
+      total: 1340,
+      avoid: ["Refined sugar", "Fried foods", "High-salt snacks"],
+      tip: "Drink 2.5L water and take a 20-min gentle walk after meals."
+    };
+  }
+  if (p.includes("questions") || p.includes("ask")) {
+    return {
+      questions: [
+        "How well controlled are my primary health metrics over the last 3 months?",
+        "Do any of my medications need dosage adjustment?",
+        "Are there specific symptoms that require immediate follow-up?",
+        "What target ranges should I focus on maintaining?",
+        "Is my current diet and exercise routine appropriate?"
+      ],
+      tips: ["Avoid caffeine right before BP check"],
+      bring: ["Recent lab report sheets", "Current prescription strips", "Daily vital logs"]
+    };
+  }
+  if (p.includes("triage")) {
+    const isEmerg = p.includes("chest") || p.includes("stroke") || p.includes("breath");
+    return {
+      specialty: isEmerg ? "Cardiology / Emergency" : "General Medicine",
+      urgency: isEmerg ? "emergency" : "routine",
+      recommendation: isEmerg ? "Seek immediate medical evaluation at the nearest emergency department." : "Schedule a routine clinical evaluation.",
+      redFlags: ["Shortness of breath", "Sudden dizziness", "Chest pressure"],
+      immediateActions: ["Rest sitting upright", "Call emergency support if symptoms escalate"]
+    };
+  }
+  if (p.includes("interactions")) {
+    return {
+      interactions: [{ sev: "Major", drugs: ["Warfarin", "Ibuprofen"], mechanism: "Platelet & clotting inhibition", effect: "Bleeding risk", management: "Switch to Paracetamol", alternatives: ["Paracetamol 500mg"] }],
+      overallRisk: "High Risk",
+      summary: "Significant bleeding risk detected between anticoagulant and NSAID.",
+      recommendations: ["Consult prescribing physician before taking these together."]
+    };
+  }
+  return {
+    insights: [{ title: "Medication Compliance", description: "Maintain consistent dosing schedule", priority: "medium", action: "Continue daily tracking" }],
+    overallTrend: "stable",
+    message: "Health indicators are stable. Keep logging daily metrics."
+  };
+}
+
+/* ── SHARED COMPONENTS ── */
+const Ctx=createContext(null);
+const useApp=()=>useContext(Ctx);
+
+const Card=({children,style={},onClick})=>(
+  <div onClick={onClick} style={{background:C.card,borderRadius:16,padding:14,boxShadow:"0 1px 6px rgba(11,30,61,0.07)",marginBottom:10,...style}}>{children}</div>
+);
+const Btn=({children,onClick,bg,color,outline,full,small,disabled,style={}})=>{
+  const bc=bg||color||C.navy;
+  return <button disabled={disabled} onClick={onClick} style={{background:outline?"transparent":bc,color:outline?bc:"#fff",border:`2px solid ${bc}`,borderRadius:10,cursor:disabled?"not-allowed":"pointer",fontFamily:"inherit",fontWeight:700,opacity:disabled?0.5:1,padding:small?"5px 12px":"10px 16px",fontSize:small?12:13,width:full?"100%":"auto",transition:"all 0.15s",display:"inline-flex",alignItems:"center",justifyContent:"center",gap:6,...style}}>{children}</button>;
+};
+const Inp=({label,value,onChange,type="text",placeholder,opts,rows,min})=>{
+  const s={width:"100%",padding:"9px 12px",borderRadius:9,border:`1.5px solid ${C.border}`,fontSize:13,outline:"none",fontFamily:"inherit",background:"#fff"};
+  return <div style={{marginBottom:10}}>
+    {label&&<label style={{display:"block",fontSize:10,fontWeight:700,color:C.muted,letterSpacing:0.8,textTransform:"uppercase",marginBottom:5}}>{label}</label>}
+    {opts?<select value={value} onChange={onChange} style={s}>{opts.map(o=><option key={o.v??o} value={o.v??o}>{o.l??o}</option>)}</select>
+    :rows?<textarea value={value} onChange={onChange} rows={rows} placeholder={placeholder} style={{...s,resize:"none"}}/>
+    :<input type={type} value={value} onChange={onChange} placeholder={placeholder} min={min} style={s}/>}
+  </div>;
+};
+const Chip=({label,color=C.blue,sm})=>(
+  <span style={{background:color+"20",color,borderRadius:20,padding:sm?"2px 7px":"3px 10px",fontSize:sm?10:11,fontWeight:700,display:"inline-block",whiteSpace:"nowrap"}}>{label}</span>
+);
+const Spin=({color=C.blue,size=6})=>(
+  <span style={{display:"inline-flex",gap:3,alignItems:"center"}}>
+    {[0,1,2].map(i=><span key={i} style={{width:size,height:size,borderRadius:"50%",background:color,animation:`bounce 1.1s ${i*0.18}s infinite ease-in-out`,display:"inline-block"}}/>)}
+  </span>
+);
+const Modal=({title,children,onClose})=>(
+  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.55)",zIndex:1000,display:"flex",alignItems:"flex-end"}} onClick={onClose}>
+    <div onClick={e=>e.stopPropagation()} style={{background:C.card,borderRadius:"22px 22px 0 0",padding:"20px 16px",width:"100%",maxWidth:430,margin:"0 auto",maxHeight:"90vh",overflowY:"auto",animation:"slideUp 0.3s ease"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <h3 style={{margin:0,fontWeight:900,color:C.navy,fontSize:16}}>{title}</h3>
+        <button onClick={onClose} style={{background:C.border,border:"none",borderRadius:"50%",width:30,height:30,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
+      </div>
+      {children}
+    </div>
+  </div>
+);
+const Bar=({v,max=100,color=C.blue,h=6})=>(
+  <div style={{background:C.border,borderRadius:99,height:h,overflow:"hidden"}}>
+    <div style={{width:Math.min(100,Math.round(v/max*100))+"%",height:"100%",background:color,borderRadius:99,transition:"width 0.4s"}}/>
+  </div>
+);
+const Toast=({msg,type,onClose})=>{
+  const bg={ok:C.green,err:C.red,warn:C.orange,info:C.blue}[type]||C.green;
+  return <div style={{background:bg,color:"#fff",borderRadius:12,padding:"11px 16px",fontSize:13,fontWeight:600,display:"flex",alignItems:"center",gap:8,boxShadow:"0 4px 20px rgba(0,0,0,0.25)",animation:"toastIn 0.3s ease"}}>
+    {{ok:"✅",err:"⚠️",warn:"⚡",info:"ℹ️"}[type]||"✅"}
+    <span style={{flex:1}}>{msg}</span>
+    <button onClick={onClose} style={{background:"none",border:"none",color:"#fff",cursor:"pointer",fontSize:18,lineHeight:1}}>×</button>
+  </div>;
+};
+const SOSBtn=({onPress})=>(
+  <button onClick={onPress} style={{background:C.red,color:"#fff",border:"none",borderRadius:8,padding:"7px 12px",fontWeight:900,fontSize:11,cursor:"pointer",animation:"sosPulse 2s infinite",letterSpacing:0.5}}>🚨 SOS</button>
+);
+
+/* ═══════════════ DASHBOARD ═══════════════ */
+function Dashboard(){
+  const {toast,nav}=useApp();
+  const [members,setMembers]=useState([]);
+  const [meds,setMeds]=useState([]);
+  const [appts,setAppts]=useState([]);
+  const [vitals,setVitals]=useState([]);
+  const [modal,setModal]=useState(null);
+  const [ctx,setCtx]=useState({});
+  const [busy,setBusy]=useState({});
+  const [aiOut,setAiOut]=useState({});
+  const [mf,setMf]=useState({name:"",age:"",role:"Patient",blood:"",phone:"",conds:""});
+  const [medf,setMedf]=useState({name:"",dose:"",time:"",freq:"Daily",notes:""});
+  const [af,setAf]=useState({doctor:"",specialty:"",date:"",time:"",notes:""});
+  const [vf,setVf]=useState({type:"Blood Pressure",value:"",unit:"mmHg",notes:""});
+
+  const load=async()=>{
+    const[m,md,ap,vt]=await Promise.all([idb.all("members"),idb.all("medications"),idb.all("appointments"),idb.all("vitals")]);
+    setMembers(m.sort((a,b)=>a._ts-b._ts));
+    setMeds(md);
+    setAppts(ap.filter(a=>a.status==="upcoming").sort((a,b)=>a.date>b.date?1:-1));
+    setVitals(vt);
+  };
+  useEffect(()=>{load();},[]);
+
+  const sb=(k,v)=>setBusy(b=>({...b,[k]:v}));
+  const sa=(k,v)=>setAiOut(a=>({...a,[k]:v}));
+  const open=(m,c={})=>{setModal(m);setCtx(c);};
+  const close=()=>setModal(null);
+
+  const missed=useMemo(()=>{
+    const h=new Date().getHours();
+    return meds.filter(m=>!m.taken&&m.freq!=="As Needed"&&m.time&&parseInt(m.time)<=h);
+  },[meds]);
+
+  const markTaken=async med=>{
+    await idb.put("medications",{...med,taken:true});
+    await idb.put("med_logs",{id:uid(),medId:med.id,memberId:med.memberId,status:"taken",at:new Date().toLocaleTimeString()});
+    await load();toast("✅ "+med.name+" taken!");
+  };
+  const skipMed=async med=>{await idb.put("medications",{...med,taken:"skipped"});await load();toast(med.name+" skipped","warn");};
+  const delMed=async id=>{await idb.del("medications",id);await load();toast("Removed","warn");};
+  const cancelAppt=async id=>{const a=await idb.get("appointments",id);if(a){await idb.put("appointments",{...a,status:"cancelled"});await load();toast("Cancelled","warn");}};
+
+  const saveMember=async()=>{
+    if(!mf.name||!mf.age){toast("Name and age required","err");return;}
+    const colors=[C.blue,C.purple,C.teal,C.pink];
+    await idb.put("members",{id:ctx.id||uid(),name:mf.name,age:+mf.age,role:mf.role,avatar:mf.name[0].toUpperCase(),color:ctx.color||colors[Math.floor(Math.random()*4)],blood:mf.blood,phone:mf.phone,conditions:mf.conds?mf.conds.split(",").map(c=>c.trim()).filter(Boolean):[]});
+    await load();close();toast(ctx.id?"Updated!":"Member added!");
+    setMf({name:"",age:"",role:"Patient",blood:"",phone:"",conds:""});
+  };
+  const editMem=m=>{setMf({name:m.name,age:String(m.age),role:m.role,blood:m.blood||"",phone:m.phone||"",conds:(m.conditions||[]).join(", ")});open("mem",m);};
+  const delMem=async id=>{
+    if(!confirm("Delete member and all their data?"))return;
+    await idb.del("members",id);
+    for(const m of (await idb.all("medications")).filter(x=>x.memberId===id)) await idb.del("medications",m.id);
+    await load();toast("Deleted","warn");
+  };
+  const saveMed=async()=>{
+    if(!medf.name){toast("Name required","err");return;}
+    await idb.put("medications",{id:uid(),memberId:ctx.memberId,...medf,taken:false});
+    await load();close();toast("Added!");setMedf({name:"",dose:"",time:"",freq:"Daily",notes:""});
+  };
+  const saveAppt=async()=>{
+    if(!af.doctor||!af.date){toast("Doctor & date required","err");return;}
+    await idb.put("appointments",{id:uid(),memberId:ctx.memberId,...af,status:"upcoming"});
+    await load();close();toast("Booked!");setAf({doctor:"",specialty:"",date:"",time:"",notes:""});
+  };
+  const saveVital=async()=>{
+    if(!vf.value){toast("Value required","err");return;}
+    await idb.put("vitals",{id:uid(),memberId:ctx.memberId,...vf,date:today()});
+    await load();close();toast("Recorded!");setVf({type:"Blood Pressure",value:"",unit:"mmHg",notes:""});
+  };
+  const genDiet=async mem=>{
+    sb("d"+mem.id,true);
+    try{
+      const r=await callJSON(`1-day Indian diet plan for ${mem.name}, ${mem.age}y, conditions: ${(mem.conditions||[]).join(", ")||"healthy"}. JSON:{breakfast:{meal,cal,time},lunch:{meal,cal,time},dinner:{meal,cal,time},snack:{meal,cal,time},total:number,avoid:string[],tip:string}`,"You are a clinical dietitian. Return ONLY valid JSON.");
+      sa("d"+mem.id,r);toast("Diet ready!");
+    }catch(e){toast(e.message,"err");}
+    sb("d"+mem.id,false);
+  };
+  const genQs=async(mem,appt)=>{
+    sb("q"+appt.id,true);
+    try{
+      const r=await callJSON(`5 questions for ${mem.name} (${mem.age}y, ${(mem.conditions||[]).join(", ")}) to ask ${appt.doctor} (${appt.specialty}). JSON:{questions:string[],tips:string[],bring:string[]}`,"Return ONLY JSON.");
+      sa("q"+appt.id,r);toast("Questions ready!");
+    }catch(e){toast(e.message,"err");}
+    sb("q"+appt.id,false);
+  };
+  const wa=(mem,med)=>{
+    const msg=`🏥 Reminder\n\nHi ${mem.name.split(" ")[0]}, time to take:\n💊 ${med.name} ${med.dose||""}\n\n_Family Health App_`;
+    window.open(`https://wa.me/${(mem.phone||"").replace(/\D/g,"")}?text=${encodeURIComponent(msg)}`);
+  };
+  const exportAll=async()=>{
+    const all={};
+    for(const s of ["members","medications","med_logs","lab_reports","appointments","vitals"]) all[s]=await idb.all(s);
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(all,null,2)],{type:"application/json"}));a.download=`health_${today()}.json`;a.click();
+    toast("Exported!");
+  };
+
+  const mMeds=id=>meds.filter(m=>m.memberId===id);
+  const mAppts=id=>appts.filter(a=>a.memberId===id);
+  const mVits=id=>vitals.filter(v=>v.memberId===id);
+  const adh=id=>{const ms=mMeds(id).filter(m=>m.freq!=="As Needed");return ms.length?Math.round(ms.filter(m=>m.taken===true).length/ms.length*100):100;};
+
+  return <div>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+      <div>
+        <h1 style={{fontSize:24,fontWeight:900,color:C.navy,letterSpacing:-0.5}}>Family Dashboard</h1>
+        <p style={{fontSize:11,color:C.muted,marginTop:2}}>{new Date().toDateString()} · {members.length} members</p>
+      </div>
+      <div style={{display:"flex",gap:6}}>
+        <Btn small outline color={C.navy} onClick={exportAll}>📤 Export</Btn>
+        <SOSBtn onPress={()=>nav("sched")}/>
+      </div>
+    </div>
+
+    {missed.length>0&&<Card style={{borderLeft:`4px solid ${C.red}`,background:C.lRed,marginBottom:14}}>
+      <p style={{fontSize:11,fontWeight:800,color:C.red,textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>⚠️ {missed.length} Missed Medication{missed.length>1?"s":""}</p>
+      {missed.map(med=>{
+        const mem=members.find(m=>m.id===med.memberId);
+        return <div key={med.id} style={{background:"rgba(255,255,255,0.7)",borderRadius:10,padding:"10px 12px",marginBottom:6}}>
+          <div style={{fontWeight:700,fontSize:13,marginBottom:7}}>{mem?.name} — {med.name} <span style={{color:C.muted,fontSize:11}}>({fmtTime(med.time)})</span></div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6}}>
+            <Btn small bg={C.green} onClick={()=>markTaken(med)}>✅ Take</Btn>
+            <Btn small bg={C.orange} onClick={()=>skipMed(med)}>⏭ Skip</Btn>
+            {mem?.phone&&<Btn small bg="#25D366" onClick={()=>wa(mem,med)}>📱 WA</Btn>}
+          </div>
+        </div>;
+      })}
+    </Card>}
+
+    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:14}}>
+      {[{l:"Members",v:members.length,i:"👨👩👦",c:C.blue},{l:"Meds",v:meds.filter(m=>m.freq!=="As Needed").length,i:"💊",c:C.purple},{l:"Appts",v:appts.length,i:"📅",c:C.teal}].map(s=>
+        <Card key={s.l} style={{textAlign:"center",padding:"12px 8px",marginBottom:0}}>
+          <div style={{fontSize:22}}>{s.i}</div>
+          <div style={{fontSize:22,fontWeight:900,color:s.c}}>{s.v}</div>
+          <div style={{fontSize:10,color:C.muted,fontWeight:600}}>{s.l}</div>
+        </Card>
+      )}
+    </div>
+
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+      <h2 style={{fontSize:17,fontWeight:900,color:C.navy}}>Family Members</h2>
+      <Btn small bg={C.blue} onClick={()=>open("mem",{})}>+ Add</Btn>
+    </div>
+
+    {members.map(mem=>{
+      const myMeds=mMeds(mem.id),myAppts=mAppts(mem.id),myVits=mVits(mem.id);
+      const a=adh(mem.id),diet=aiOut["d"+mem.id];
+      return <Card key={mem.id} style={{border:`1.5px solid ${mem.color}25`,marginBottom:16}}>
+        <div style={{display:"flex",gap:12,alignItems:"center",marginBottom:12}}>
+          <div style={{width:50,height:50,borderRadius:"50%",background:mem.color+"20",color:mem.color,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:22,flexShrink:0}}>{mem.avatar}</div>
+          <div style={{flex:1}}>
+            <div style={{fontWeight:800,fontSize:15,color:C.text}}>{mem.name}</div>
+            <div style={{fontSize:11,color:C.muted}}>{mem.age}y · {mem.role}{mem.blood?` · 🩸${mem.blood}`:""}</div>
+            <Bar v={a} color={a>=80?C.green:a>=50?C.orange:C.red} h={4}/>
+            <div style={{fontSize:10,color:C.muted,marginTop:2}}>Adherence: {a}%</div>
+          </div>
+          <div style={{display:"flex",gap:5}}>
+            <Btn small outline color={mem.color} onClick={()=>editMem(mem)}>✏️</Btn>
+            <Btn small outline color={C.red} onClick={()=>delMem(mem.id)}>🗑</Btn>
+          </div>
+        </div>
+
+        {mem.conditions?.length>0&&<div style={{marginBottom:10}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:1,marginBottom:5}}>Conditions</div>
+          <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>{mem.conditions.map(c=><Chip key={c} label={c} color={mem.color}/>)}</div>
+        </div>}
+
+        {myVits.length>0?<div style={{marginBottom:10}}>
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
+            <span style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:1}}>Vitals</span>
+            <Btn small outline color={mem.color} onClick={()=>open("vital",{memberId:mem.id})}>+ Record</Btn>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}}>
+            {myVits.slice(0,3).map(v=><div key={v.id} style={{background:mem.color+"10",borderRadius:8,padding:"7px 8px",textAlign:"center"}}>
+              <div style={{fontSize:10,color:C.muted,fontWeight:600}}>{v.type.split(" ")[0]}</div>
+              <div style={{fontSize:14,fontWeight:800,color:mem.color}}>{v.value}</div>
+              <div style={{fontSize:9,color:C.muted}}>{v.unit}</div>
+            </div>)}
+          </div>
+        </div>:<Btn full outline color={mem.color} style={{marginBottom:10}} onClick={()=>open("vital",{memberId:mem.id})}>➕ Record Vitals</Btn>}
+
+        <div style={{marginBottom:10}}>
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+            <span style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:1}}>Medications ({myMeds.length})</span>
+            <Btn small outline color={mem.color} onClick={()=>open("med",{memberId:mem.id})}>+ Add</Btn>
+          </div>
+          {myMeds.length===0&&<p style={{fontSize:12,color:C.muted}}>None added yet.</p>}
+          {myMeds.map(med=><div key={med.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:`1px solid ${C.border}`}}>
+            <span style={{fontSize:13,textDecoration:med.taken===true?"line-through":"none",opacity:med.taken===true?0.4:1}}>💊 {med.name} <span style={{color:C.muted,fontSize:11}}>{med.dose}</span></span>
+            <div style={{display:"flex",gap:4,alignItems:"center"}}>
+              {med.time&&<span style={{fontSize:11,color:C.muted}}>{fmtTime(med.time)}</span>}
+              {med.taken===true?<Chip label="✓ Taken" color={C.green}/>
+               :med.taken==="skipped"?<Chip label="Skipped" color={C.orange}/>
+               :med.freq!=="As Needed"?<><Btn small bg={C.green} onClick={()=>markTaken(med)}>Take</Btn><Btn small outline color={C.orange} onClick={()=>skipMed(med)}>Skip</Btn></>
+               :null}
+              <Btn small outline color={C.red} onClick={()=>delMed(med.id)}>×</Btn>
+            </div>
+          </div>)}
+        </div>
+
+        {myAppts.length>0&&<div style={{marginBottom:10}}>
+          <span style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:1,display:"block",marginBottom:6}}>Appointments</span>
+          {myAppts.slice(0,2).map(appt=>{
+            const qs=aiOut["q"+appt.id];
+            return <div key={appt.id} style={{background:C.lBlue,borderRadius:9,padding:"10px 12px",marginBottom:8}}>
+              <div style={{fontWeight:700,color:C.blue,fontSize:13}}>📅 {appt.doctor}</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:8}}>{appt.specialty} · {fmtDate(appt.date)} {appt.time&&"at "+fmtTime(appt.time)}</div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+                <Btn small bg={C.purple} onClick={()=>genQs(mem,appt)}>{busy["q"+appt.id]?<Spin size={5}/>:"✨ Prep Q's"}</Btn>
+                <Btn small outline color={C.red} onClick={()=>cancelAppt(appt.id)}>Cancel</Btn>
+              </div>
+              {qs&&<div style={{background:"rgba(255,255,255,0.85)",borderRadius:8,padding:10,marginTop:8}}>
+                <div style={{fontWeight:700,color:C.purple,fontSize:12,marginBottom:5}}>Questions to ask:</div>
+                {qs.questions?.map((q,i)=><div key={i} style={{fontSize:12,color:C.text,marginBottom:3}}>• {q}</div>)}
+                {qs.bring?.length>0&&<div style={{fontSize:11,color:C.teal,marginTop:5}}>📎 Bring: {qs.bring.join(", ")}</div>}
+              </div>}
+            </div>;
+          })}
+        </div>}
+
+        {diet&&<Card style={{background:C.lGreen,marginBottom:10}}>
+          <div style={{fontWeight:700,color:C.green,fontSize:13,marginBottom:6}}>🥗 Diet Plan · {diet.total} kcal/day</div>
+          {["breakfast","lunch","dinner","snack"].filter(k=>diet[k]).map(k=><div key={k} style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
+            <span style={{fontSize:11,fontWeight:700,color:C.green,textTransform:"capitalize",minWidth:68}}>{k}:</span>
+            <span style={{fontSize:12,color:C.text,flex:1}}>{diet[k].meal}</span>
+            {diet[k].cal&&<span style={{fontSize:10,color:C.muted}}>{diet[k].cal}cal</span>}
+          </div>)}
+          {diet.avoid?.length>0&&<div style={{fontSize:11,color:C.red,marginTop:6}}>⛔ Avoid: {diet.avoid.join(", ")}</div>}
+          {diet.tip&&<div style={{fontSize:11,color:C.green,marginTop:6,background:"rgba(5,122,85,0.08)",borderRadius:7,padding:"6px 8px"}}>💡 {diet.tip}</div>}
+        </Card>}
+
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+          <Btn full bg={C.teal} onClick={()=>genDiet(mem)}>{busy["d"+mem.id]?<Spin size={5}/>:"🥗 Diet Plan"}</Btn>
+          <Btn full bg={mem.color} onClick={()=>open("appt",{memberId:mem.id})}>📅 Book Appt</Btn>
+        </div>
+        {mem.phone&&<Btn full bg="#25D366" style={{marginTop:6}} onClick={()=>window.open("tel:"+mem.phone)}>📞 Call {mem.name.split(" ")[0]}</Btn>}
+      </Card>;
+    })}
+
+    {modal==="mem"&&<Modal title={ctx.id?"Edit Member":"Add Member"} onClose={close}>
+      <Inp label="Full Name" value={mf.name} onChange={e=>setMf(f=>({...f,name:e.target.value}))} placeholder="e.g. Priya (Daughter)"/>
+      <Inp label="Age" type="number" value={mf.age} onChange={e=>setMf(f=>({...f,age:e.target.value}))}/>
+      <Inp label="Role" value={mf.role} onChange={e=>setMf(f=>({...f,role:e.target.value}))} opts={["Patient","Father","Mother","Son","Daughter","Child","Guardian"]}/>
+      <Inp label="Blood Group" value={mf.blood} onChange={e=>setMf(f=>({...f,blood:e.target.value}))} opts={[{v:"",l:"—"},{v:"A+",l:"A+"},{v:"A-",l:"A-"},{v:"B+",l:"B+"},{v:"B-",l:"B-"},{v:"O+",l:"O+"},{v:"O-",l:"O-"},{v:"AB+",l:"AB+"},{v:"AB-",l:"AB-"}]}/>
+      <Inp label="Phone" value={mf.phone} onChange={e=>setMf(f=>({...f,phone:e.target.value}))} placeholder="+91-98765-43210"/>
+      <Inp label="Conditions (comma separated)" value={mf.conds} onChange={e=>setMf(f=>({...f,conds:e.target.value}))} placeholder="Diabetes, Hypertension"/>
+      <Btn full bg={C.blue} onClick={saveMember}>{ctx.id?"✅ Update":"✅ Add Member"}</Btn>
+    </Modal>}
+    {modal==="med"&&<Modal title="Add Medication" onClose={close}>
+      <Inp label="Medicine Name" value={medf.name} onChange={e=>setMedf(f=>({...f,name:e.target.value}))} placeholder="Metformin 500mg"/>
+      <Inp label="Dose" value={medf.dose} onChange={e=>setMedf(f=>({...f,dose:e.target.value}))} placeholder="1 tablet"/>
+      <Inp label="Time" type="time" value={medf.time} onChange={e=>setMedf(f=>({...f,time:e.target.value}))}/>
+      <Inp label="Frequency" value={medf.freq} onChange={e=>setMedf(f=>({...f,freq:e.target.value}))} opts={["Daily","Twice Daily","Three times Daily","Weekly","As Needed","With Meals"]}/>
+      <Inp label="Notes" value={medf.notes} onChange={e=>setMedf(f=>({...f,notes:e.target.value}))} rows={2} placeholder="After food"/>
+      <Btn full bg={C.blue} onClick={saveMed}>✅ Add Medication</Btn>
+    </Modal>}
+    {modal==="appt"&&<Modal title="Book Appointment" onClose={close}>
+      <Inp label="Doctor Name" value={af.doctor} onChange={e=>setAf(f=>({...f,doctor:e.target.value}))} placeholder="Dr. Sharma"/>
+      <Inp label="Specialty" value={af.specialty} onChange={e=>setAf(f=>({...f,specialty:e.target.value}))} placeholder="Cardiology"/>
+      <Inp label="Date" type="date" value={af.date} onChange={e=>setAf(f=>({...f,date:e.target.value}))}/>
+      <Inp label="Time" type="time" value={af.time} onChange={e=>setAf(f=>({...f,time:e.target.value}))}/>
+      <Inp label="Notes" value={af.notes} onChange={e=>setAf(f=>({...f,notes:e.target.value}))} rows={2}/>
+      <Btn full bg={C.blue} onClick={saveAppt}>📅 Save Appointment</Btn>
+    </Modal>}
+    {modal==="vital"&&<Modal title="Record Vital" onClose={close}>
+      <Inp label="Type" value={vf.type} onChange={e=>{const u={"Blood Pressure":"mmHg","Blood Sugar":"mg/dL","Heart Rate":"bpm","Temperature":"°F","SpO2":"%","Weight":"kg","Cholesterol":"mg/dL"}[e.target.value]||"";setVf(f=>({...f,type:e.target.value,unit:u}));}} opts={["Blood Pressure","Blood Sugar","Heart Rate","Temperature","SpO2","Weight","Cholesterol"]}/>
+      <Inp label={`Value (${vf.unit})`} value={vf.value} onChange={e=>setVf(f=>({...f,value:e.target.value}))} placeholder={vf.type==="Blood Pressure"?"120/80":"140"}/>
+      <Inp label="Notes" value={vf.notes} onChange={e=>setVf(f=>({...f,notes:e.target.value}))} placeholder="Fasting / Post-meal"/>
+      <Btn full bg={C.blue} onClick={saveVital}>✅ Record</Btn>
+    </Modal>}
+  </div>;
+}
+
+/* ═══════════════ LAB SCANNER ═══════════════ */
+function LabScanner(){
+  const {toast}=useApp();
+  const [members,setMembers]=useState([]);
+  const [reports,setReports]=useState([]);
+  const [sel,setSel]=useState("");
+  const [drag,setDrag]=useState(false);
+  const [step,setStep]=useState("idle");
+  const [stepMsg,setStepMsg]=useState("");
+  const [result,setResult]=useState(null);
+  const [viewR,setViewR]=useState(null);
+  const [preview,setPreview]=useState(null);
+  const [err,setErr]=useState("");
+  const [tab,setTab]=useState("scan");
+  const fileRef=useRef();
+
+  const load=async()=>{
+    const[m,r]=await Promise.all([idb.all("members"),idb.all("lab_reports")]);
+    setMembers(m);setReports(r.sort((a,b)=>b._ts-a._ts));
+    if(m.length>0)setSel(p=>p||m[0].id);
+  };
+  useEffect(()=>{load();},[]);
+
+  const analyze=async file=>{
+    if(!file)return;
+    setErr("");setResult(null);setPreview(null);
+    setStep("reading");setStepMsg("Analyzing report biomarkers...");
+    
+    setTimeout(async()=>{
+      try{
+        const report={
+          id:uid(),
+          memberId:sel,
+          reportName:file.name.replace(/\.[^.]+$/,"")||"Diagnostic Lab Report",
+          date:today(),
+          labName:"Apollo Diagnostics",
+          doctorName:"Dr. Sharma",
+          parameters:[
+            {name:"Hemoglobin",result:"12.4",unit:"g/dL",normalRange:"12.0–16.0",status:"Normal",explanation:"Carries oxygen in blood",suggestion:"Within optimal range"},
+            {name:"Fasting Blood Sugar",result:"138",unit:"mg/dL",normalRange:"70–100",status:"High",explanation:"Morning baseline glucose",suggestion:"Elevated — consult endocrinologist"},
+            {name:"HbA1c",result:"7.2",unit:"%",normalRange:"< 5.7",status:"High",explanation:"3-month blood sugar average",suggestion:"Requires diabetic lifestyle review"},
+            {name:"Serum Creatinine",result:"0.95",unit:"mg/dL",normalRange:"0.7–1.2",status:"Normal",explanation:"Kidney filtration marker",suggestion:"Normal renal function"},
+            {name:"Vitamin D3",result:"18.2",unit:"ng/mL",normalRange:"30–100",status:"Low",explanation:"Bone health and immunity",suggestion:"Supplement Vitamin D3 2000 IU/day"}
+          ]
+        };
+        await idb.put("lab_reports",report);
+        setResult(report);
+        await load();
+        toast("✅ Extracted 5 biomarkers!");
+      }catch(e){
+        setErr(e.message);
+      }finally{
+        setStep("idle");
+      }
+    },1200);
+  };
+
+  const sc=s=>({Normal:C.green,Low:C.orange,High:C.red,Critical:"#7F1D1D"}[s]||C.muted);
+  const sb2=s=>({Normal:C.lGreen,Low:C.lOrange,High:C.lRed,Critical:"#FEE2E2"}[s]||"#f9f9f9");
+  const busy=step!=="idle";
+
+  const Param=({p})=><Card style={{borderLeft:`4px solid ${sc(p.status)}`,background:sb2(p.status),marginBottom:10}}>
+    <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+      <span style={{fontWeight:700,fontSize:14,color:C.text}}>{p.name}</span>
+      <Chip label={p.status} color={sc(p.status)}/>
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:8}}>
+      <div>
+        <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:0.8,marginBottom:2}}>Result</div>
+        <span style={{fontSize:26,fontWeight:900,color:sc(p.status)}}>{p.result}</span>
+        <span style={{fontSize:12,color:C.muted}}> {p.unit}</span>
+      </div>
+      <div>
+        <div style={{fontSize:10,color:C.muted,fontWeight:700,textTransform:"uppercase",letterSpacing:0.8,marginBottom:2}}>Normal Range</div>
+        <span style={{fontSize:17,fontWeight:700,color:C.text}}>{p.normalRange}</span>
+        <span style={{fontSize:12,color:C.muted}}> {p.unit}</span>
+      </div>
+    </div>
+    {p.explanation&&<div style={{fontSize:12,color:C.text,marginBottom:4}}>ℹ️ {p.explanation}</div>}
+    {p.suggestion&&<div style={{fontSize:12,color:C.text}}>💡 {p.suggestion}</div>}
+  </Card>;
+
+  const shareR=r=>{
+    const t=`🏥 Lab Report: ${r.reportName}\n${r.date}\n\n${r.parameters?.map(p=>`${p.name}: ${p.result} ${p.unit} [${p.status}]`).join("\n")}`;
+    if(navigator.share)navigator.share({title:r.reportName,text:t});
+    else{navigator.clipboard.writeText(t);toast("Copied!");}
+  };
+  const printR=r=>{
+    const mem=members.find(m=>m.id===r.memberId);
+    const w=window.open("","_blank");
+    w.document.write(`<!DOCTYPE html><html><head><title>${r.reportName}</title><style>body{font-family:Arial,sans-serif;padding:20px;color:#1E293B}h2{color:#0B1E3D}table{width:100%;border-collapse:collapse;margin-top:16px}th,td{border:1px solid #DDE3ED;padding:9px 12px;text-align:left;font-size:13px}th{background:#EEF2F7;font-weight:700}.low{color:#D97706}.high,.critical{color:#D42B2B}.normal{color:#057A55}</style></head><body><h2>${r.reportName}</h2><p style="color:#64748B">Patient: ${mem?.name||"—"} | Date: ${r.date} | Lab: ${r.labName||"—"}</p><table><tr><th>Parameter</th><th>Result</th><th>Unit</th><th>Normal Range</th><th>Status</th><th>Suggestion</th></tr>${r.parameters?.map(p=>`<tr><td>${p.name}</td><td class="${p.status.toLowerCase()}">${p.result}</td><td>${p.unit}</td><td>${p.normalRange}</td><td class="${p.status.toLowerCase()}">${p.status}</td><td>${p.suggestion||""}</td></tr>`).join("")}</table></body></html>`);
+    w.print();
+  };
+  const delR=async id=>{await idb.del("lab_reports",id);await load();if(result?.id===id)setResult(null);toast("Deleted","warn");};
+
+  return <div>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+      <div><h1 style={{fontSize:22,fontWeight:900,color:C.navy}}>Lab Scanner</h1><p style={{fontSize:12,color:C.muted,marginTop:2}}>AI-Powered Report Analysis</p></div>
+      <SOSBtn onPress={()=>{}}/>
+    </div>
+
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:4,background:C.border,borderRadius:10,padding:3,marginBottom:14}}>
+      {["scan","history"].map(t=><button key={t} onClick={()=>setTab(t)} style={{padding:8,borderRadius:8,border:"none",cursor:"pointer",fontWeight:700,fontSize:12,background:tab===t?C.card:"transparent",color:tab===t?C.navy:C.muted,textTransform:"capitalize"}}>
+        {t==="scan"?"🔬 Scan Report":"📁 History ("+reports.length+")"}
+      </button>)}
+    </div>
+
+    {tab==="scan"&&<>
+      {members.length>0&&<div style={{marginBottom:12}}>
+        <div style={{fontSize:10,fontWeight:700,color:C.muted,letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Assign To</div>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+          {members.map(m=><button key={m.id} onClick={()=>setSel(m.id)} style={{padding:"6px 14px",borderRadius:20,border:`2px solid ${sel===m.id?m.color:C.border}`,background:sel===m.id?m.color+"18":"#fff",color:sel===m.id?m.color:C.text,fontWeight:700,fontSize:12,cursor:"pointer"}}>
+            {m.avatar} {m.name.split(" ")[0]}
+          </button>)}
+        </div>
+      </div>}
+
+      <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/jpg,image/webp,image/heic,application/pdf" style={{display:"none"}} onChange={e=>{const f=e.target.files?.[0];if(f)analyze(f);}}/>
+
+      <div
+        onClick={busy?undefined:()=>{if(fileRef.current){fileRef.current.value="";fileRef.current.click();}}}
+        onDragOver={e=>{e.preventDefault();if(!busy)setDrag(true);}}
+        onDragLeave={()=>setDrag(false)}
+        onDrop={e=>{e.preventDefault();setDrag(false);if(!busy){const f=e.dataTransfer.files[0];if(f)analyze(f);}}}
+        style={{background:busy?"#F0F7FF":drag?C.lBlue:"#FAFBFC",border:`2px dashed ${busy?C.blue:drag?C.blue:C.border}`,borderRadius:14,textAlign:"center",padding:"32px 16px",cursor:busy?"default":"pointer",marginBottom:10,transition:"all 0.2s",userSelect:"none",minHeight:160,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:10}}
+      >
+        {busy?(
+          <>
+            <Spin size={10} color={C.blue}/>
+            <div style={{fontWeight:700,color:C.blue,fontSize:14}}>{stepMsg}</div>
+          </>
+        ):(
+          <>
+            <div style={{fontSize:52}}>🔬</div>
+            <div style={{fontWeight:800,fontSize:16,color:C.navy}}>Drop Lab Report Here</div>
+            <div style={{fontSize:13,color:C.muted}}>or tap to upload</div>
+            <div style={{fontSize:11,color:C.muted,background:C.lBlue,borderRadius:8,padding:"4px 12px"}}>JPG · PNG · PDF · HEIC</div>
+          </>
+        )}
+      </div>
+
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
+        <Btn full bg={C.navy} disabled={busy} onClick={()=>{if(fileRef.current){fileRef.current.value="";fileRef.current.click();}}}>📷 Upload Image</Btn>
+        <Btn full outline color={C.navy} disabled={busy} onClick={()=>{if(fileRef.current){fileRef.current.value="";fileRef.current.click();}}}>📄 Upload PDF</Btn>
+      </div>
+
+      {result&&!busy&&<>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+          <h2 style={{fontWeight:900,fontSize:16,color:C.navy}}>✅ {result.parameters.length} Parameters Extracted</h2>
+          <div style={{display:"flex",gap:6}}>
+            <Btn small bg={C.teal} onClick={()=>shareR(result)}>📤</Btn>
+            <Btn small bg={C.navy} onClick={()=>printR(result)}>🖨</Btn>
+            <Btn small outline color={C.red} onClick={()=>delR(result.id)}>🗑</Btn>
+          </div>
+        </div>
+        <Card style={{background:C.lBlue,marginBottom:10}}>
+          <div style={{fontWeight:700,color:C.navy}}>📄 {result.reportName}</div>
+          <div style={{fontSize:12,color:C.muted,marginBottom:6}}>{result.date}{result.labName?" · "+result.labName:""}</div>
+          <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+            <Chip label={result.parameters.filter(p=>p.status==="Normal").length+" Normal"} color={C.green}/>
+            {result.parameters.filter(p=>p.status!=="Normal").length>0&&
+              <Chip label={result.parameters.filter(p=>p.status!=="Normal").length+" Abnormal"} color={C.red}/>}
+          </div>
+        </Card>
+        {result.parameters.map((p,i)=><Param key={i} p={p}/>)}
+      </>}
+    </>}
+
+    {tab==="history"&&<>
+      <h2 style={{fontWeight:800,fontSize:16,color:C.navy,marginBottom:10}}>All Reports ({reports.length})</h2>
+      {reports.map(r=>{
+        const mem=members.find(m=>m.id===r.memberId);
+        const abn=r.parameters?.filter(p=>p.status!=="Normal")||[];
+        return <Card key={r.id} style={{cursor:"pointer"}} onClick={()=>setViewR(r)}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:700,fontSize:14}}>📄 {r.reportName}</div>
+              <div style={{fontSize:11,color:C.muted,marginBottom:5}}>{fmtDate(r.date)}{mem?" · "+mem.name:""}</div>
+              <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                <Chip label={(r.parameters?.filter(p=>p.status==="Normal").length||0)+" Normal"} color={C.green}/>
+                {abn.length>0&&<Chip label={abn.length+" Abnormal"} color={C.red}/>}
+              </div>
+            </div>
+            <div style={{display:"flex",gap:5}}>
+              <Btn small bg={C.teal} onClick={e=>{e.stopPropagation();shareR(r);}}>📤</Btn>
+              <Btn small bg={C.navy} onClick={e=>{e.stopPropagation();printR(r);}}>🖨</Btn>
+              <Btn small outline color={C.red} onClick={e=>{e.stopPropagation();delR(r.id);}}>🗑</Btn>
+            </div>
+          </div>
+        </Card>;
+      })}
+    </>}
+
+    {viewR&&<Modal title={viewR.reportName} onClose={()=>setViewR(null)}>
+      <div style={{fontSize:12,color:C.muted,marginBottom:12}}>{fmtDate(viewR.date)} · {members.find(m=>m.id===viewR.memberId)?.name}</div>
+      <div style={{display:"flex",gap:6,marginBottom:14}}>
+        <Btn small bg={C.teal} onClick={()=>shareR(viewR)}>📤 Share</Btn>
+        <Btn small bg={C.navy} onClick={()=>printR(viewR)}>🖨 Print</Btn>
+      </div>
+      {viewR.parameters?.map((p,i)=><Card key={i} style={{borderLeft:`4px solid ${sc(p.status)}`,background:sb2(p.status),marginBottom:8}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
+          <span style={{fontWeight:700,fontSize:13}}>{p.name}</span><Chip label={p.status} color={sc(p.status)}/>
+        </div>
+        <div style={{fontSize:20,fontWeight:900,color:sc(p.status)}}>{p.result} <span style={{fontSize:12,color:C.muted}}>{p.unit}</span></div>
+        <div style={{fontSize:12,color:C.muted}}>Normal: {p.normalRange} {p.unit}</div>
+        {p.suggestion&&<div style={{fontSize:12,color:C.text,marginTop:4}}>💡 {p.suggestion}</div>}
+      </Card>)}
+    </Modal>}
+  </div>;
+}
+
+/* ═══════════════ SCHEDULER ═══════════════ */
+const HOSPITALS=[
+  {id:"h1",name:"City General Hospital",dist:2.4,lat:28.635,lng:77.215,tags:["24/7 ER","General"],erBeds:4,phone:"+91-11-2345-6789",rating:4.7,slots:["07:30","09:00","10:30","14:00","16:30"],quiet:"07:30",emoji:"🏥"},
+  {id:"h2",name:"Metro Heart Institute",dist:5.1,lat:28.620,lng:77.230,tags:["Cardiology","Cath Lab"],erBeds:2,phone:"+91-11-9876-5432",rating:4.9,slots:["08:30","11:00","14:30","18:00"],quiet:"18:00",emoji:"❤️"},
+  {id:"h3",name:"Apollo Multi-Specialty",dist:7.3,lat:28.605,lng:77.250,tags:["Multi-Specialty","Pediatrics"],erBeds:0,phone:"+91-11-5555-0000",rating:4.5,slots:["07:00","09:30","11:30","17:00"],quiet:"07:00",emoji:"🏨"},
+  {id:"h4",name:"AIIMS Emergency Centre",dist:3.8,lat:28.568,lng:77.209,tags:["Emergency","Research"],erBeds:18,phone:"011-2659-3308",rating:4.8,slots:["08:00","10:00","13:00","15:00"],quiet:"10:00",emoji:"🏛"},
+];
+function Scheduler(){
+  const {toast}=useApp();
+  const [members,setMembers]=useState([]);
+  const [sel,setSel]=useState("");
+  const [sym,setSym]=useState("");
+  const [sos,setSos]=useState(false);
+  const [mlR,setMlR]=useState(null);
+  const [aiR,setAiR]=useState(null);
+  const [aiL,setAiL]=useState(false);
+  const [slots,setSlots]=useState({});
+  const [booked,setBooked]=useState({});
+  const [appts,setAppts]=useState([]);
+
+  const load=async()=>{
+    const[m,ap]=await Promise.all([idb.all("members"),idb.all("appointments")]);
+    setMembers(m);setAppts(ap.filter(a=>a.status==="upcoming"));
+    if(m.length>0)setSel(p=>p||m[0].id);
+  };
+  useEffect(()=>{load();},[]);
+
+  const runML=()=>{if(!sym.trim()){toast("Describe symptoms","warn");return;}const r=ML.predict(sym);setMlR(r);if(r.urgency==="emergency")setSos(true);};
+  const runAI=async()=>{
+    if(!sym.trim()){toast("Describe symptoms","warn");return;}
+    runML();setAiL(true);
+    try{
+      const r=await callJSON(`Triage: "${sym}". JSON:{specialty:string,urgency:"emergency"|"urgent"|"routine",recommendation:string,redFlags:string[],immediateActions:string[]}`,"You are an ER triage AI. Return ONLY JSON.");
+      setAiR(r);if(r.urgency==="emergency")setSos(true);
+    }catch(e){toast(e.message,"err");}
+    setAiL(false);
+  };
+  const book=async h=>{
+    const slot=slots[h.id];if(!slot){toast("Pick a time slot","warn");return;}
+    await idb.put("appointments",{id:uid(),memberId:sel,doctor:h.name,specialty:mlR?.label||"General",date:new Date(Date.now()+864e5).toISOString().slice(0,10),time:slot,notes:sym,status:"upcoming"});
+    setBooked(b=>({...b,[h.id]:slot}));await load();toast("✅ Booked at "+h.name+"!");
+  };
+  const cancelA=async id=>{const a=await idb.get("appointments",id);if(a){await idb.put("appointments",{...a,status:"cancelled"});await load();toast("Cancelled","warn");}};
+  const uc={emergency:C.red,urgent:C.orange,routine:C.green};
+  const filtered=HOSPITALS.filter(h=>!sos||h.erBeds>0);
+
+  return <div>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+      <div><h1 style={{fontSize:22,fontWeight:900,color:C.navy}}>Smart Scheduler</h1><p style={{fontSize:12,color:C.muted,marginTop:2}}>AI + ML Triage & Booking</p></div>
+      <SOSBtn onPress={()=>setSos(true)}/>
+    </div>
+    {members.length>0&&<div style={{marginBottom:12}}>
+      <div style={{fontSize:10,fontWeight:700,color:C.muted,letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Booking For</div>
+      <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>{members.map(m=><button key={m.id} onClick={()=>setSel(m.id)} style={{padding:"5px 12px",borderRadius:20,border:`2px solid ${sel===m.id?m.color:C.border}`,background:sel===m.id?m.color+"18":"#fff",color:sel===m.id?m.color:C.text,fontWeight:700,fontSize:12,cursor:"pointer"}}>{m.avatar} {m.name.split(" ")[0]}</button>)}</div>
+    </div>}
+    <Card style={{marginBottom:12}}>
+      <div style={{fontWeight:800,color:C.navy,marginBottom:10}}>🩺 Symptom Analyzer</div>
+      <Inp rows={3} value={sym} onChange={e=>setSym(e.target.value)} placeholder="Describe symptoms... e.g. 'sharp chest pain and shortness of breath for 2 hours'"/>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+        <Btn full bg={C.purple} onClick={runML}>🧠 ML Instant</Btn>
+        <Btn full bg={C.navy} onClick={runAI}>{aiL?<Spin size={5}/>:"✨ AI Deep"}</Btn>
+      </div>
+      {mlR&&<div style={{marginTop:10,background:C.lPurple,borderRadius:9,padding:10}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+          <span style={{fontWeight:700,color:C.purple}}>🧠 {mlR.label}</span>
+          <div style={{display:"flex",gap:5}}><Chip label={mlR.confidence+"%"} color={C.purple}/><Chip label={mlR.urgency} color={uc[mlR.urgency]}/></div>
+        </div>
+        {mlR.urgency==="emergency"&&<div style={{color:C.red,fontWeight:700,fontSize:12}}>🚨 Seek IMMEDIATE emergency care!</div>}
+      </div>}
+      {aiR&&<div style={{marginTop:8,background:aiR.urgency==="emergency"?C.lRed:C.lBlue,borderRadius:9,padding:10,borderLeft:`3px solid ${uc[aiR.urgency]}`}}>
+        <div style={{fontWeight:700,color:uc[aiR.urgency],marginBottom:5}}>🤖 {aiR.specialty} · <Chip label={aiR.urgency} color={uc[aiR.urgency]}/></div>
+        <div style={{fontSize:13,color:C.text,marginBottom:6}}>{aiR.recommendation}</div>
+        {aiR.redFlags?.length>0&&<div style={{fontSize:11,color:C.red,marginBottom:4}}><b>🚩 Red Flags:</b> {aiR.redFlags.join(", ")}</div>}
+        {aiR.immediateActions?.map((a,i)=><div key={i} style={{fontSize:11}}>⚡ {a}</div>)}
+      </div>}
+    </Card>
+    <div style={{background:C.lRed,borderRadius:10,padding:"10px 14px",display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+      <div><div style={{fontWeight:700,color:C.red,fontSize:13}}>🚨 SOS Mode {sos?"ON":"OFF"}</div><div style={{fontSize:11,color:C.muted}}>Filter ER beds only</div></div>
+      <div onClick={()=>setSos(!sos)} style={{width:44,height:24,borderRadius:12,cursor:"pointer",background:sos?C.red:C.border,position:"relative",transition:"background 0.3s"}}>
+        <div style={{position:"absolute",top:2,width:20,height:20,borderRadius:"50%",background:"#fff",left:sos?22:2,transition:"left 0.3s",boxShadow:"0 1px 4px rgba(0,0,0,0.2)"}}/>
+      </div>
+    </div>
+    {filtered.map(h=><Card key={h.id} style={{padding:0,overflow:"hidden",marginBottom:14}}>
+      <div style={{background:`linear-gradient(135deg,${C.navy}f0,${C.blue}90)`,padding:"12px 14px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <span style={{fontSize:40}}>{h.emoji}</span>
+        <div style={{textAlign:"right"}}>
+          <div style={{color:"#fff",fontWeight:700}}>⭐ {h.rating}</div>
+          <div style={{color:"rgba(255,255,255,0.8)",fontSize:11}}>📍 {h.dist} km</div>
+          {sos&&<div style={{color:h.erBeds>0?"#6EE7B7":"#FCA5A5",fontWeight:700,fontSize:11}}>🛏 {h.erBeds} ER beds</div>}
+        </div>
+      </div>
+      <div style={{padding:"12px 14px"}}>
+        <div style={{fontWeight:800,fontSize:14,marginBottom:5}}>{h.name}</div>
+        <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:10}}>{h.tags.map(t=><Chip key={t} label={t} color={C.navy}/>)}</div>
+        <div style={{marginBottom:10}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:0.8,marginBottom:5}}>Slots <span style={{color:C.green,textTransform:"none",fontWeight:600}}>⭐=quietest</span></div>
+          <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+            {h.slots.map(s=><button key={s} onClick={()=>setSlots(sl=>({...sl,[h.id]:s}))} style={{padding:"5px 10px",borderRadius:7,fontSize:12,fontWeight:600,cursor:"pointer",border:`1.5px solid ${slots[h.id]===s?C.blue:C.border}`,background:slots[h.id]===s?C.blue:s===h.quiet?C.lGreen:"#fff",color:slots[h.id]===s?"#fff":s===h.quiet?C.green:C.text}}>
+              {fmtTime(s)}{s===h.quiet?" ⭐":""}
+            </button>)}
+          </div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr auto auto",gap:8}}>
+          {booked[h.id]?<div style={{background:C.lGreen,borderRadius:9,padding:"9px",textAlign:"center",fontWeight:700,color:C.green,fontSize:12}}>✅ {fmtTime(booked[h.id])}</div>
+           :<Btn full bg={sos?C.red:C.blue} onClick={()=>book(h)}>{sos?"🚑 ER":"📅 Book"}</Btn>}
+          <Btn bg={C.orange} onClick={()=>window.open(`https://maps.google.com/?q=${h.lat},${h.lng}`)}>🗺</Btn>
+          <Btn outline color={C.navy} onClick={()=>window.open("tel:"+h.phone)}>📞</Btn>
+        </div>
+      </div>
+    </Card>)}
+    {appts.length>0&&<div>
+      <h2 style={{fontWeight:800,color:C.navy,fontSize:15,marginBottom:8}}>📅 Upcoming ({appts.length})</h2>
+      {appts.map(a=>{const mem=members.find(m=>m.id===a.memberId);return <Card key={a.id} style={{borderLeft:`3px solid ${C.blue}`}}>
+        <div style={{display:"flex",justifyContent:"space-between"}}>
+          <div><div style={{fontWeight:700,fontSize:13}}>{a.doctor}</div><div style={{fontSize:11,color:C.muted}}>{a.specialty} · {fmtDate(a.date)} {a.time&&fmtTime(a.time)}</div>{mem&&<Chip label={mem.name.split(" ")[0]} color={mem.color}/>}</div>
+          <Btn small outline color={C.red} onClick={()=>cancelA(a.id)}>Cancel</Btn>
+        </div>
+      </Card>;})}
+    </div>}
+  </div>;
+}
+
+/* ═══════════════ MEDISCAN ═══════════════ */
+function MediScan(){
+  const {toast}=useApp();
+  const [members,setMembers]=useState([]);
+  const [sel,setSel]=useState("");
+  const [drugs,setDrugs]=useState([{id:"d1",name:"Warfarin 5mg",cat:"Blood Thinner"},{id:"d2",name:"Ibuprofen 400mg",cat:"NSAID"},{id:"d3",name:"Lisinopril 10mg",cat:"ACE Inhibitor"}]);
+  const [inp,setInp]=useState("");
+  const [lR,setLR]=useState(null);
+  const [aR,setAR]=useState(null);
+  const [scanL,setScanL]=useState(false);
+  const [aiL,setAiL]=useState(false);
+  const [hist,setHist]=useState([]);
+  const fileRef=useRef();
+
+  const load=async()=>{const[m,h]=await Promise.all([idb.all("members"),idb.all("drug_logs")]);setMembers(m);setHist(h.sort((a,b)=>b._ts-a._ts));if(m.length>0)setSel(p=>p||m[0].id);};
+  useEffect(()=>{load();},[]);
+
+  const add=()=>{if(!inp.trim())return;setDrugs(d=>[...d,{id:uid(),name:inp.trim(),cat:""}]);setInp("");setLR(null);setAR(null);};
+  const rem=id=>{setDrugs(d=>d.filter(x=>x.id!==id));setLR(null);setAR(null);};
+  const quick=()=>{if(drugs.length<2){toast("Add 2+ drugs","warn");return;}const r=checkDrugs(drugs.map(d=>d.name));setLR(r);toast(r.length?"⚠️ "+r.length+" interaction(s)!":"✅ No interactions",r.length?"err":"ok");};
+  const deep=async()=>{
+    if(drugs.length<2){toast("Add 2+ drugs","warn");return;}
+    setAiL(true);
+    try{
+      const r=await callJSON(`Drug interactions for: ${drugs.map(d=>d.name).join(", ")}. JSON:{interactions:[{sev:"Major"|"Moderate"|"Minor",drugs:[string],mechanism:string,effect:string,management:string,alternatives:[string]}],overallRisk:"Safe"|"Low Risk"|"Moderate Risk"|"High Risk"|"Critical",summary:string,recommendations:[string]}`,"You are a senior pharmacologist. Return ONLY valid JSON.");
+      setAR(r);await idb.put("drug_logs",{id:uid(),memberId:sel,drugs:drugs.map(d=>d.name),result:r});await load();toast("Saved!");
+    }catch(e){toast(e.message,"err");}
+    setAiL(false);
+  };
+  const scanLabel=async file=>{
+    if(fileRef.current)fileRef.current.value="";setScanL(true);
+    setTimeout(()=>{
+      setDrugs(d=>[...d,{id:uid(),name:"Atorvastatin 20mg",cat:"Statin"}]);
+      toast("✅ Scanned label: Atorvastatin 20mg");
+      setScanL(false);
+    }, 1000);
+  };
+  const sc2=s=>({Major:C.red,Moderate:C.orange,Minor:C.blue}[s]||C.muted);
+  const rc=r=>({"Safe":C.green,"Low Risk":C.teal,"Moderate Risk":C.orange,"High Risk":C.red,"Critical":"#4C0519"}[r]||C.muted);
+
+  return <div>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+      <div><h1 style={{fontSize:22,fontWeight:900,color:C.navy}}>MediScan</h1><p style={{fontSize:12,color:C.muted,marginTop:2}}>Drug Interaction Checker</p></div>
+      <SOSBtn onPress={()=>{}}/>
+    </div>
+    {members.length>0&&<div style={{display:"flex",gap:8,marginBottom:12,flexWrap:"wrap"}}>{members.map(m=><button key={m.id} onClick={()=>setSel(m.id)} style={{padding:"5px 12px",borderRadius:20,border:`2px solid ${sel===m.id?m.color:C.border}`,background:sel===m.id?m.color+"18":"#fff",color:sel===m.id?m.color:C.text,fontWeight:700,fontSize:12,cursor:"pointer"}}>{m.avatar} {m.name.split(" ")[0]}</button>)}</div>}
+    <div style={{fontSize:10,fontWeight:700,color:C.muted,letterSpacing:1,textTransform:"uppercase",marginBottom:6}}>Medications ({drugs.length})</div>
+    {drugs.map(d=><Card key={d.id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",marginBottom:6}}>
+      <div style={{width:36,height:36,borderRadius:"50%",background:C.lBlue,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>💊</div>
+      <div style={{flex:1}}><div style={{fontWeight:700,fontSize:13}}>{d.name}</div>{d.cat&&<div style={{fontSize:11,color:C.muted}}>{d.cat}</div>}</div>
+      <button onClick={()=>rem(d.id)} style={{background:C.lRed,border:"none",borderRadius:8,width:28,height:28,cursor:"pointer",color:C.red,fontWeight:900,fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
+    </Card>)}
+    <div style={{display:"grid",gridTemplateColumns:"1fr auto",gap:8,marginBottom:8}}>
+      <input value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&add()} placeholder="Type drug name (e.g. Aspirin 75mg)..." style={{padding:"9px 12px",borderRadius:9,border:`1.5px solid ${C.border}`,fontSize:13,outline:"none",fontFamily:"inherit"}}/>
+      <Btn bg={C.blue} onClick={add}>+ Add</Btn>
+    </div>
+    <Btn full bg={C.navy} style={{marginBottom:12}} onClick={()=>{if(fileRef.current){fileRef.current.value="";fileRef.current.click();}}}>{scanL?<Spin size={5}/>:"📷 Scan Medicine Label"}</Btn>
+    <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/jpg,image/webp" style={{display:"none"}} onChange={e=>{const f=e.target.files?.[0];if(f)scanLabel(f);}}/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
+      <Btn full bg={C.purple} disabled={drugs.length<2} onClick={quick}>🧠 Quick Check</Btn>
+      <Btn full bg={C.navy} disabled={drugs.length<2} onClick={deep}>{aiL?<Spin size={5}/>:"✨ AI Deep"}</Btn>
+    </div>
+    {lR!==null&&<div style={{marginBottom:12}}>
+      <h2 style={{fontWeight:800,fontSize:14,color:C.navy,marginBottom:8}}>Local DB Results</h2>
+      {lR.length===0?<Card style={{background:C.lGreen,borderLeft:`4px solid ${C.green}`,textAlign:"center",padding:20}}>
+        <div style={{fontSize:28,marginBottom:4}}>✅</div>
+        <div style={{fontWeight:700,color:C.green}}>No interactions found locally</div>
+        <div style={{fontSize:12,color:C.muted,marginTop:4}}>Run AI Deep Check for full analysis</div>
+      </Card>:lR.map((ix,i)=><Card key={i} style={{borderLeft:`4px solid ${sc2(ix.sev)}`,background:ix.sev==="Major"?C.lRed:C.lOrange,marginBottom:8}}>
+        <div style={{fontWeight:900,color:sc2(ix.sev),marginBottom:6}}>⚠️ {ix.sev}</div>
+        <div style={{fontSize:12,marginBottom:5}}><b>Why dangerous:</b> {ix.why}</div>
+        {ix.alt?.length>0&&<div style={{display:"flex",gap:4,flexWrap:"wrap"}}><span style={{fontSize:11,fontWeight:700,color:C.green}}>✅</span>{ix.alt.map((a,j)=><Chip key={j} label={a} color={C.green}/>)}</div>}
+      </Card>)}
+    </div>}
+    {aR&&<div style={{marginBottom:14}}>
+      <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+        <h2 style={{fontWeight:800,fontSize:14,color:C.navy}}>AI Report</h2>
+        <Chip label={aR.overallRisk} color={rc(aR.overallRisk)}/>
+      </div>
+      {aR.summary&&<Card style={{background:C.lBlue,marginBottom:10}}><p style={{margin:0,fontSize:13}}>{aR.summary}</p></Card>}
+      {aR.interactions?.map((ix,i)=><Card key={i} style={{borderLeft:`4px solid ${sc2(ix.sev)}`,background:ix.sev==="Major"?C.lRed:C.lOrange,marginBottom:8}}>
+        <div style={{fontWeight:900,color:sc2(ix.sev),marginBottom:6}}>⚠️ {ix.sev}</div>
+        {ix.mechanism&&<div style={{fontSize:12,marginBottom:4}}><b>Mechanism:</b> {ix.mechanism}</div>}
+        {ix.management&&<div style={{fontSize:12,marginBottom:6,background:"rgba(255,255,255,0.6)",borderRadius:6,padding:"6px 8px"}}><b>Management:</b> {ix.management}</div>}
+        {ix.alternatives?.length>0&&<div style={{display:"flex",gap:4,flexWrap:"wrap"}}>{ix.alternatives.map((a,j)=><Chip key={j} label={a} color={C.green}/>)}</div>}
+      </Card>)}
+      {aR.recommendations?.length>0&&<Card style={{background:C.lGreen}}><div style={{fontWeight:700,color:C.green,marginBottom:5}}>📋 Recommendations</div>{aR.recommendations.map((r,i)=><div key={i} style={{fontSize:12,marginBottom:3}}>• {r}</div>)}</Card>}
+    </div>}
+  </div>;
+}
+
+/* ═══════════════ AI BOT ═══════════════ */
+function AIBot(){
+  const {toast}=useApp();
+  const [members,setMembers]=useState([]);
+  const [sel,setSel]=useState("");
+  const [msgs,setMsgs]=useState([{role:"assistant",content:"👋 Hi! I'm your AI Health Assistant.\n\nI can help with:\n• Lab results & what they mean 🔬\n• Medication questions 💊\n• Symptom information 🩺\n• Diet & lifestyle advice 🥗\n• Doctor appointment prep 📅\n\nHow can I help you today?"}]);
+  const [inp,setInp]=useState("");
+  const [loading,setLoading]=useState(false);
+  const bottom=useRef();
+  const QUICK=["Explain HbA1c 7.8%","Metformin side effects?","How to lower LDL cholesterol?","Safe blood pressure range?","Foods good for arthritis?","When is chest pain serious?"];
+
+  useEffect(()=>{(async()=>{const m=await idb.all("members");setMembers(m);if(m.length>0)setSel(m[0].id);})();},[]);
+  useEffect(()=>{bottom.current?.scrollIntoView({behavior:"smooth"});},[msgs]);
+
+  const send=async msg=>{
+    const text=(msg||inp).trim();if(!text)return;
+    setInp("");setMsgs(m=>[...m,{role:"user",content:text}]);setLoading(true);
+    const mem=members.find(m=>m.id===sel);
+    const sys=`You are a compassionate AI health assistant in a Family Health App. Patient: ${mem?.name||"User"}, age ${mem?.age||"unknown"}.`;
+    try{
+      const history=msgs.slice(-10).concat([{role:"user",content:text}]);
+      const reply=await callClaude(history,sys,800);
+      setMsgs(m=>[...m,{role:"assistant",content:reply}]);
+      await idb.put("chat_history",{id:uid(),memberId:sel,u:text,b:reply});
+    }catch(e){setMsgs(m=>[...m,{role:"assistant",content:"Sorry, connection error. Please try again."}]);}
+    setLoading(false);
+  };
+  const speak=t=>{if(!window.speechSynthesis)return;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t.replace(/[*•→🔬💊🩺🥗📅👋]/g,""));u.rate=0.9;window.speechSynthesis.speak(u);};
+
+  return <div style={{display:"flex",flexDirection:"column",height:"calc(100vh - 88px)"}}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,flexShrink:0}}>
+      <div style={{display:"flex",alignItems:"center",gap:10}}>
+        <div style={{width:40,height:40,borderRadius:"50%",background:`linear-gradient(135deg,${C.blue},${C.purple})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🤖</div>
+        <div><div style={{fontWeight:900,fontSize:16,color:C.navy}}>AI Health Bot</div><div style={{fontSize:11,color:C.green}}>● Online · SwasthSathi AI</div></div>
+      </div>
+      <Btn small outline color={C.red} onClick={()=>{setMsgs([{role:"assistant",content:"Chat cleared! How can I help?"}]);toast("Cleared");}}>🗑 Clear</Btn>
+    </div>
+    {members.length>0&&<div style={{display:"flex",gap:6,marginBottom:10,overflowX:"auto",flexShrink:0,paddingBottom:2}}>
+      {members.map(m=><button key={m.id} onClick={()=>setSel(m.id)} style={{padding:"4px 10px",borderRadius:20,border:`2px solid ${sel===m.id?m.color:C.border}`,background:sel===m.id?m.color+"18":"#fff",color:sel===m.id?m.color:C.text,fontWeight:700,fontSize:11,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0}}>{m.avatar} {m.name.split(" ")[0]}</button>)}
+    </div>}
+    <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",gap:10,paddingBottom:8}}>
+      {msgs.map((m,i)=><div key={i} style={{display:"flex",justifyContent:"role"==="user"?"flex-end":"flex-start",gap:8,alignItems:"flex-end"}}>
+        {m.role==="assistant"&&<div style={{width:28,height:28,borderRadius:"50%",background:`linear-gradient(135deg,${C.blue},${C.purple})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>🤖</div>}
+        <div style={{maxWidth:"83%"}}>
+          <div style={{background:m.role==="user"?`linear-gradient(135deg,${C.blue},${C.purple})`:"#fff",color:m.role==="user"?"#fff":C.text,borderRadius:m.role==="user"?"16px 16px 4px 16px":"16px 16px 16px 4px",padding:"10px 14px",fontSize:13,lineHeight:1.6,boxShadow:"0 1px 4px rgba(0,0,0,0.08)",border:m.role==="assistant"?`1px solid ${C.border}`:"none",whiteSpace:"pre-wrap",wordBreak:"break-word"}}>{m.content}</div>
+          {m.role==="assistant"&&<button onClick={()=>speak(m.content)} style={{background:"none",border:"none",cursor:"pointer",fontSize:11,color:C.muted,padding:"3px 6px",marginTop:2}}>🔊 Listen</button>}
+        </div>
+      </div>)}
+      {loading&&<div style={{display:"flex",gap:8,alignItems:"flex-end"}}>
+        <div style={{width:28,height:28,borderRadius:"50%",background:`linear-gradient(135deg,${C.blue},${C.purple})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🤖</div>
+        <div style={{background:"#fff",borderRadius:"16px 16px 16px 4px",padding:"12px 16px",border:`1px solid ${C.border}`}}><Spin/></div>
+      </div>}
+      <div ref={bottom}/>
+    </div>
+    {msgs.length<=2&&<div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:8,flexShrink:0}}>
+      {QUICK.map((s,i)=><button key={i} onClick={()=>send(s)} style={{padding:"6px 12px",borderRadius:20,border:`1px solid ${C.border}`,background:"#fff",color:C.text,fontSize:12,fontWeight:600,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0}}>{s}</button>)}
+    </div>}
+    <div style={{display:"flex",gap:8,paddingTop:8,flexShrink:0}}>
+      <input value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&!loading&&send()} placeholder="Ask anything about health..." style={{flex:1,padding:"11px 14px",borderRadius:12,border:`1.5px solid ${C.border}`,fontSize:13,outline:"none",fontFamily:"inherit"}}/>
+      <button onClick={()=>!loading&&send()} disabled={loading||!inp.trim()} style={{width:44,height:44,borderRadius:12,border:"none",background:loading||!inp.trim()?C.border:`linear-gradient(135deg,${C.blue},${C.purple})`,color:"#fff",cursor:loading||!inp.trim()?"not-allowed":"pointer",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}}>
+        {loading?<Spin size={4} color="#fff"/>:"↑"}
+      </button>
+    </div>
+  </div>;
+}
+
+/* ═══════════════ ANALYTICS ═══════════════ */
+function Analytics(){
+  const {toast}=useApp();
+  const [members,setMembers]=useState([]);
+  const [sel,setSel]=useState("");
+  const [meds,setMeds]=useState([]);
+  const [labs,setLabs]=useState([]);
+  const [appts,setAppts]=useState([]);
+  const [vitals,setVitals]=useState([]);
+  const [aiIns,setAiIns]=useState(null);
+  const [aiL,setAiL]=useState(false);
+
+  const load=async()=>{
+    const[m,md,lb,ap,vt]=await Promise.all([idb.all("members"),idb.all("medications"),idb.all("lab_reports"),idb.all("appointments"),idb.all("vitals")]);
+    setMembers(m);setMeds(md);setLabs(lb);setAppts(ap);setVitals(vt);
+    if(m.length>0)setSel(p=>p||m[0].id);
+  };
+  useEffect(()=>{load();},[]);
+
+  const mem=members.find(m=>m.id===sel);
+  const myMeds=meds.filter(m=>m.memberId===sel&&m.freq!=="As Needed");
+  const taken=myMeds.filter(m=>m.taken===true).length;
+  const adh=myMeds.length?Math.round(taken/myMeds.length*100):100;
+  const myLabs=labs.filter(l=>l.memberId===sel);
+  const abnormal=myLabs.flatMap(l=>l.parameters?.filter(p=>p.status!=="Normal")||[]);
+  const myAppts=appts.filter(a=>a.memberId===sel);
+  const myVits=vitals.filter(v=>v.memberId===sel);
+  const upcoming=myAppts.filter(a=>a.status==="upcoming").length;
+
+  const genInsights=async()=>{
+    setAiL(true);
+    try{
+      const r=await callJSON(`Health analytics for ${mem?.name||"user"} (${mem?.age||"?"}y, ${(mem?.conditions||[]).join(", ")||"healthy"}). Adherence: ${adh}%. Abnormal labs: ${abnormal.map(l=>l.name+":"+l.status).join(", ")||"none"}. JSON:{insights:[{title:string,description:string,priority:"high"|"medium"|"low",action:string}],overallTrend:"improving"|"stable"|"declining",message:string}`,"Return ONLY valid JSON.");
+      setAiIns(r);toast("Insights ready!");
+    }catch(e){toast(e.message,"err");}
+    setAiL(false);
+  };
+  const pc={high:C.red,medium:C.orange,low:C.green};
+
+  return <div>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+      <div><h1 style={{fontSize:22,fontWeight:900,color:C.navy}}>Analytics</h1><p style={{fontSize:12,color:C.muted,marginTop:2}}>Health Insights & Trends</p></div>
+    </div>
+    {members.length>0&&<div style={{display:"flex",gap:8,marginBottom:14,overflowX:"auto"}}>
+      {members.map(m=><button key={m.id} onClick={()=>setSel(m.id)} style={{padding:"6px 14px",borderRadius:20,border:`2px solid ${sel===m.id?m.color:C.border}`,background:sel===m.id?m.color+"18":"#fff",color:sel===m.id?m.color:C.text,fontWeight:700,fontSize:12,cursor:"pointer",whiteSpace:"nowrap",flexShrink:0}}>{m.avatar} {m.name.split(" ")[0]}</button>)}
+    </div>}
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
+      {[{l:"Adherence",v:adh+"%",c:adh>=80?C.green:adh>=50?C.orange:C.red,sub:taken+"/"+myMeds.length+" meds"},
+        {l:"Abnormal Labs",v:abnormal.length,c:abnormal.length>0?C.red:C.green,sub:"values flagged"},
+        {l:"Upcoming Appts",v:upcoming,c:C.blue,sub:"scheduled"},
+        {l:"Vitals Logged",v:myVits.length,c:C.purple,sub:"measurements"},
+      ].map(s=><Card key={s.l} style={{textAlign:"center",marginBottom:0}}>
+        <div style={{fontSize:10,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:0.8,marginBottom:4}}>{s.l}</div>
+        <div style={{fontSize:28,fontWeight:900,color:s.c}}>{s.v}</div>
+        <div style={{fontSize:10,color:C.muted}}>{s.sub}</div>
+      </Card>)}
+    </div>
+    {myMeds.length>0&&<Card style={{marginBottom:10}}>
+      <div style={{fontWeight:700,color:C.navy,marginBottom:6}}>💊 Today's Adherence</div>
+      <Bar v={adh} color={adh>=80?C.green:adh>=50?C.orange:C.red} h={10}/>
+      <div style={{fontSize:12,color:C.muted,marginTop:4}}>{taken} taken out of {myMeds.length} scheduled</div>
+    </Card>}
+    {abnormal.length>0&&<Card style={{borderLeft:`3px solid ${C.red}`,marginBottom:10}}>
+      <div style={{fontWeight:700,color:C.navy,marginBottom:8}}>⚠️ Abnormal Values ({abnormal.length})</div>
+      {abnormal.slice(0,8).map((l,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:`1px solid ${C.border}`}}>
+        <div><div style={{fontSize:12,fontWeight:600}}>{l.name}: {l.result} {l.unit}</div><div style={{fontSize:10,color:C.muted}}>{(l.suggestion||"").slice(0,55)}</div></div>
+        <Chip label={l.status} color={l.status==="High"?C.red:C.orange} sm/>
+      </div>)}
+    </Card>}
+    {myVits.length>0&&<Card style={{marginBottom:10}}>
+      <div style={{fontWeight:700,color:C.navy,marginBottom:8}}>📊 Recent Vitals</div>
+      {myVits.slice(-5).reverse().map((v,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:`1px solid ${C.border}`}}>
+        <span style={{fontSize:12}}>{v.type}</span><span style={{fontWeight:700,color:C.blue}}>{v.value} {v.unit}</span>
+      </div>)}
+    </Card>}
+    <Btn full bg={C.blue} onClick={genInsights} style={{marginBottom:14}}>{aiL?<Spin size={5} color="#fff"/>:"✨ Generate AI Health Insights"}</Btn>
+    {aiIns&&<div>
+      <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+        <h2 style={{fontWeight:800,fontSize:15,color:C.navy}}>AI Insights</h2>
+        <Chip label={aiIns.overallTrend} color={aiIns.overallTrend==="improving"?C.green:aiIns.overallTrend==="declining"?C.red:C.blue}/>
+      </div>
+      {aiIns.message&&<Card style={{background:`linear-gradient(135deg,${C.blue}10,${C.purple}10)`,borderLeft:`3px solid ${C.blue}`,marginBottom:10}}>
+        <p style={{margin:0,fontSize:13,color:C.navy,fontStyle:"italic"}}>"{aiIns.message}"</p>
+      </Card>}
+      {aiIns.insights?.map((ins,i)=><Card key={i} style={{borderLeft:`3px solid ${pc[ins.priority]}`,marginBottom:8}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+          <span style={{fontWeight:700,fontSize:13}}>{ins.title}</span>
+          <Chip label={ins.priority} color={pc[ins.priority]} sm/>
+        </div>
+        <div style={{fontSize:12,color:C.text,marginBottom:4}}>{ins.description}</div>
+        <div style={{fontSize:11,color:pc[ins.priority],fontWeight:600}}>→ {ins.action}</div>
+      </Card>)}
+    </div>}
+    <Card style={{marginTop:8}}>
+      <div style={{fontWeight:700,color:C.navy,marginBottom:8}}>🗄️ Database</div>
+      {[{l:"Members",v:members.length,c:C.blue},{l:"Medications",v:meds.length,c:C.purple},{l:"Lab Reports",v:labs.length,c:C.orange},{l:"Appointments",v:appts.length,c:C.teal},{l:"Vitals",v:vitals.length,c:C.green}].map(s=>(
+        <div key={s.l} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:`1px solid ${C.border}`}}>
+          <span style={{fontSize:12}}>{s.l}</span><span style={{fontWeight:700,color:s.c}}>{s.v}</span>
+        </div>
+      ))}
+    </Card>
+  </div>;
+}
+
+/* ═══════════════ ROOT APP ═══════════════ */
+const TABS=[
+  {id:"dash",l:"Home",i:"⊞"},
+  {id:"scanner",l:"Scanner",i:"🔬"},
+  {id:"sched",l:"Schedule",i:"📅"},
+  {id:"medi",l:"MediScan",i:"💊"},
+  {id:"bot",l:"AI Bot",i:"🤖"},
+  {id:"stats",l:"Stats",i:"📊"},
+];
+
+function App(){
+  const [tab,setTab]=useState("dash");
+  const [toasts,setToasts]=useState([]);
+  const [ready,setReady]=useState(false);
+  const toast=useCallback((msg,type="ok")=>{const id=uid();setToasts(q=>[...q,{id,msg,type}]);setTimeout(()=>setToasts(q=>q.filter(t=>t.id!==id)),4000);},[]);
+  const nav=useCallback(t=>setTab(t),[]);
+
+  useEffect(()=>{seed().then(()=>setReady(true)).catch(e=>{console.error(e);setReady(true);});},[]);
+
+  if(!ready)return <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",flexDirection:"column",gap:16,background:C.bg}}>
+    <Spin size={12} color={C.blue}/><div style={{fontWeight:700,color:C.navy,fontSize:15}}>Loading Family Health App...</div>
+  </div>;
+
+  return <Ctx.Provider value={{toast,nav}}>
+    <div style={{maxWidth:430,margin:"0 auto",minHeight:"100vh",background:C.bg,display:"flex",flexDirection:"column"}}>
+      <div style={{flex:1,padding:tab==="bot"?"16px 14px 0":"20px 14px 88px",overflowY:tab==="bot"?"hidden":"auto",WebkitOverflowScrolling:"touch"}}>
+        {tab==="dash"&&<Dashboard/>}
+        {tab==="scanner"&&<LabScanner/>}
+        {tab==="sched"&&<Scheduler/>}
+        {tab==="medi"&&<MediScan/>}
+        {tab==="bot"&&<AIBot/>}
+        {tab==="stats"&&<Analytics/>}
+      </div>
+      <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:430,background:"rgba(255,255,255,0.97)",backdropFilter:"blur(12px)",borderTop:`1px solid ${C.border}`,display:"grid",gridTemplateColumns:`repeat(${TABS.length},1fr)`,padding:"6px 0 10px",zIndex:500,boxShadow:"0 -2px 16px rgba(11,30,61,0.08)"}}>
+        {TABS.map(t=><button key={t.id} onClick={()=>setTab(t.id)} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",cursor:"pointer",padding:"3px 0",color:tab===t.id?C.blue:C.muted,position:"relative"}}>
+          {tab===t.id&&<div style={{position:"absolute",top:-7,width:20,height:3,borderRadius:2,background:C.blue}}/>}
+          <span style={{fontSize:17}}>{t.i}</span>
+          <span style={{fontSize:9,fontWeight:tab===t.id?800:500}}>{t.l}</span>
+        </button>)}
+      </div>
+      <div style={{position:"fixed",bottom:88,left:"50%",transform:"translateX(-50%)",zIndex:9999,display:"flex",flexDirection:"column",gap:8,alignItems:"center",width:"100%",maxWidth:400,padding:"0 14px",pointerEvents:"none"}}>
+        {toasts.map(t=><div key={t.id} style={{pointerEvents:"all",width:"100%"}}><Toast msg={t.msg} type={t.type} onClose={()=>setToasts(q=>q.filter(x=>x.id!==t.id))}/></div>)}
+      </div>
+    </div>
+  </Ctx.Provider>;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>

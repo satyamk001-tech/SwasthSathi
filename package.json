@@ -1,0 +1,27 @@
+{
+  "name": "swasthsathi",
+  "version": "1.0.0",
+  "description": "SwasthSathi - AI-Powered Family Health Assistant & Diagnostic Triage",
+  "scripts": {
+    "dev": "npm run dev --prefix frontend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "npm run dev --prefix backend",
+    "build": "npm run build --prefix frontend && npm run build --prefix backend",
+    "build:frontend": "npm run build --prefix frontend",
+    "build:backend": "npm run build --prefix backend",
+    "start": "npm run start --prefix backend"
+  },
+  "keywords": [
+    "health",
+    "ai",
+    "family-health",
+    "react",
+    "typescript",
+    "indexeddb",
+    "triage",
+    "lab-scanner",
+    "mediscan"
+  ],
+  "author": "satyamk001-tech",
+  "license": "MIT"
+}
